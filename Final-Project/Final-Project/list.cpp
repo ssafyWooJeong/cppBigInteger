@@ -1,57 +1,70 @@
+#pragma once
 #include "list.h"
+#include "stddef.h"
 
 template <typename T>
 list<T>::list()
 {
-	head = nullptr;
-	tail = nullptr;
-	size = 0;
+	this->head = nullptr;
+	this->tail = nullptr;
+	this->size = 0;
 }
 
 template <typename T>
 list<T>::list(T data)
 {
 	node<T> ptr = new node<T>(data);
-	head = ptr;
-	tail = ptr;
-	size = 1;
+	this->head = ptr;
+	this->tail = ptr;
+	this->size = 1;
 }
-
 
 template <typename T>
 T list<T>::at(int index)
 {
-	if (index >= size)
-		return nullptr;
+	if (index >= this->size)
+		return NULL;
 	
-	node<T>* ptr = head;
+	node<T>* ptr = this->head;
 	int iter = 0;
 
 	while(iter < index)
 	{
-		ptr = head->getNext();
+		ptr = this->head->getNext();
 		iter++;
 	}
 
-	return head->getData();
+	return ptr->getData();
 }
 
 template <typename T>
 void list<T>::append(T data)
 {
-	if(size == 1)
+	if(this->size == 0)
 	{
-		tail = new node<T>(data);
-		head->setNext(tail);
-		tail->setPrev(head);
-		size = 2;
+		node<T>* ptr = new node<T>();
+		ptr->setData(data);
+		this->head = ptr;
+		this->tail = ptr;
+		this->size = 1;
+
+		return;
+	}
+	
+	if(this->size == 1)
+	{
+		this->tail = new node<T>();
+		this->tail->setData(data);
+		this->head->setNext(this->tail);
+		this->tail->setPrev(this->head);
+		this->size = 2;
 		
 		return;
 	}
 	
-	tail = new node<T>(data, tail, nullptr);
-	tail->getPrev()->setNext(tail);
-	size++;
+	this->tail = new node<T>(data, this->tail, nullptr);
+	this->tail->getPrev()->setNext(this->tail);
+	this->size++;
 
 	return;
 }
@@ -59,7 +72,7 @@ void list<T>::append(T data)
 template <typename T>
 int list<T>::remove(int index)
 {
-	if(index >= size)
+	if(index >= this->size)
 	{
 		return -1;
 	}
@@ -68,17 +81,17 @@ int list<T>::remove(int index)
 	
 	if(index == 0) // remove head
 	{
-		ptr = head;
-		head = ptr->getNext();
-		head->setPrev(nullptr);
-	}else if(index == size -1) // remove tail
+		ptr = this->head;
+		this->head = ptr->getNext();
+		this->head->setPrev(nullptr);
+	}else if(index == this->size -1) // remove tail
 	{
-		ptr = tail;
-		tail = ptr->getPrev();
-		tail->setNext(nullptr);
+		ptr = this->tail;
+		this->tail = ptr->getPrev();
+		this->tail->setNext(nullptr);
 	}else
 	{
-		ptr = head;
+		ptr = this->head;
 		for(int i = 0; i < index; i++)
 		{
 			ptr = ptr->getNext();
@@ -88,7 +101,7 @@ int list<T>::remove(int index)
 		ptr->getNext()->setPrev(ptr->getPrev());
 	}
 	
-	size--;
+	this->size--;
 	delete ptr;
 
 	return 0;
@@ -97,7 +110,7 @@ int list<T>::remove(int index)
 template <typename T>
 int list<T>::indexOf(T data)
 {
-	node<T>* ptr = head;
+	node<T>* ptr = this->head;
 	int cnt = 0;
 	while(ptr != nullptr)
 	{
@@ -114,6 +127,32 @@ int list<T>::indexOf(T data)
 }
 
 template <typename T>
-void list<T>::insert(int index, T data)
+int list<T>::insert(int index, T data)
 {
+	if(this->size < index) // out of bound
+	{
+		return -1;
+	}else if(this->size == index)
+	{
+		append(data);
+		return 0;
+	}else if(index == 0)
+	{
+		this->head = new node<T>(data, nullptr, this->head);
+		this->head->getNext()->setPrev(this->head);
+		this->size++;
+		return 0;
+	}
+
+	node<T>* ptr = this->head;
+	for(int cnt = 0; cnt < index - 1; cnt++)
+	{
+		ptr = ptr->getNext();
+	}
+
+	ptr->setNext(new node<T>(data, ptr, ptr->getNext()));
+	ptr->getNext()->getNext()->setPrev(ptr->getNext());
+	this->size++;
+
+	return 0;
 }

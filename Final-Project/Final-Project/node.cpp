@@ -1,5 +1,6 @@
-#include "node.h"
+#pragma once
 #include <cstddef>
+#include "node.h"
 
 template <typename T>
 node<T>::node()

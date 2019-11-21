@@ -23,5 +23,5 @@ public:
 	void append(T);
 	int remove(int);
 	int indexOf(T);
-	void insert(int, T);
+	int insert(int, T);
 };
