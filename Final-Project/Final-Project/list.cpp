@@ -20,6 +20,20 @@ list<T>::list(T data)
 }
 
 template <typename T>
+list<T>::~list()
+{
+	node<T>* ptr = head;
+	node<T>* tmp;
+
+	while(ptr != nullptr)
+	{
+		tmp = ptr;
+		ptr = ptr.getNext();
+		delete tmp;
+	}
+}
+
+template <typename T>
 T list<T>::at(int index)
 {
 	if (index >= this->size)

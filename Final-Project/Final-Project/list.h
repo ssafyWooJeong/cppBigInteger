@@ -19,6 +19,7 @@ private:
 public:
 	list();
 	list(T);
+	~list();
 	T at(int);
 	void append(T);
 	int remove(int);
