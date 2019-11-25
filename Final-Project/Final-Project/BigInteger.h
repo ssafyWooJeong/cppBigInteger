@@ -9,7 +9,7 @@
 #define USECACHE TRUE
 
 #if TARGET == x86
-#define INT uint32_t // change the primitive data type depend on target machine
+#define INT uint32_t // change the primitive data type depend on target machine, but when you use less than uint32_t eflag's carry bit unavailable
 #elif TARGET == AMD64
 #define INT uint64_t
 #esle
@@ -33,7 +33,11 @@
 #define isCalculated(flag) CALCULATED & flag
 #define isComplement(flag) COMPLEMENT & flag
 
+#if TARGET == x86 || TARGET == AMD64
 #define isCarrySet() __readeflags() & 0x001
+#else 
+ // NOT x86 and AMD64
+#endif
 
 /*
  * EFLAG INFOS
@@ -50,7 +54,7 @@ private:
 	// O : Octal 		D  : Decimal			S : Sign bit
 
 	void calculate(unsigned char);
-#if USECACHE TRUE
+#if USECACHE==TRUE
 	char* str;
 #endif
 	
@@ -60,9 +64,10 @@ public:
 		this->lst = list<INT>();
 		this->flags = 0;
 	}
-	BigInteger(INT data, unsigned char flag = DECIAML)
+	BigInteger(INT data, unsigned char flag = DECIAML|POSITIVE)
 	{
-		this->lst = list<INT>(data);
+		this->lst = list<INT>();
+		this->lst.append(data);
 		this->flags = flag;
 	}
 	BigInteger(char* num)
@@ -98,12 +103,10 @@ public:
 	{
 		
 	}
-	BigInteger& multi(BigInteger);
-	BigInteger& div(BigInteger);
-	BigInteger& add(BigInteger right)
+	BigInteger& multi(BigInteger &right);
+	BigInteger& div(BigInteger &right);
+	BigInteger& add(BigInteger &right)
 	{
-		list<INT> nlst(right.lst);
-
 		INT leftCnt = this->lst.getSize(), rightCnt = right.lst.getSize();
 		bool carry = false;
 
@@ -134,6 +137,8 @@ public:
 			{
 				carry = false;
 			}
+			leftCnt--;
+			rightCnt--;
 		}
 
 		if(carry)
@@ -144,8 +149,110 @@ public:
 
 		return *this;
 	}
-	BigInteger& sub(BigInteger);
-	BigInteger& mod(BigInteger);
+	BigInteger& sub(BigInteger &right)
+	{
+		list<INT> nlst(right.lst);
+		if(!(right.flags & COMPLEMENT))
+		{
+			for(INT i = 0; i < nlst.getSize(); i++)
+			{
+				nlst.at(i) = ~nlst.at(i);
+			}
+			nlst.at(0) += 1;
+		} // make 2's complement
+
+		INT tmp = 255;
+		for(INT i = 0; i < sizeof(INT) - 1; i++)
+		{
+			tmp = tmp | (tmp << 8);
+		}
+		
+		
+		if(this->lst.getSize() > nlst.getSize())
+		{
+			for(INT i = 0; i < this->lst.getSize() - nlst.getSize(); i++)
+			{
+				this->lst.append(0);
+			}
+		}else if(this->lst.getSize() < nlst.getSize())
+		{
+			for(INT i = 0; i < nlst.getSize() - this->lst.getSize(); i++)
+			{
+				nlst.append(tmp);
+			}
+		}
+
+		this->lst.append(0);
+		nlst.append(tmp);
+		// avoid BigInteger's overflow
+
+		INT leftCnt = this->lst.getSize(), rightCnt = nlst.getSize();
+		bool carry = false;
+
+		while (leftCnt != 0 && rightCnt != 0)
+		{
+			if (leftCnt > 0 && rightCnt > 0)
+			{
+				this->lst.at(this->lst.getSize() - leftCnt) += nlst.at(nlst.getSize() - rightCnt) + (carry ? 1 : 0);
+			}
+			else if (leftCnt > 0 || rightCnt == 0)
+			{
+				if (carry)
+				{
+					this->lst.at(this->lst.getSize() - leftCnt) += 1;
+				}
+				else
+				{
+					break;
+				}
+			}
+			else if (leftCnt == 0 && rightCnt > 0)
+			{
+				this->lst.append(nlst.at(nlst.getSize() - rightCnt) + (carry ? 1 : 0));
+			}
+
+			if (isCarrySet())
+			{
+				carry = true;
+			}
+			else
+			{
+				carry = false;
+			}
+			leftCnt--;
+			rightCnt--;
+		}
+
+		tmp = 0x80;
+		for (INT i = 0; i < sizeof(INT) - 1; i++)
+		{
+			tmp = (tmp | (tmp << 8)) & ~tmp;
+		}
+
+		if(this->lst.tail->getData() & tmp) // sign bit is negative
+		{
+			flags = flags & ~POSITIVE;
+			
+			for (INT i = 0; i < this->lst.getSize(); i++)
+			{
+				this->lst.at(i) = ~this->lst.at(i);
+			}
+			this->lst.at(0) += 1;
+			// convert 2's complement to ordinal number
+		}else
+		{
+			flags = flags | POSITIVE;
+		}
+
+		while(this->lst.tail->getData() == 0)
+		{
+			this->lst.remove(this->lst.size - 1);
+			this->lst.size--;
+		}
+		
+		return *this;
+	}
+	BigInteger& mod(BigInteger &);
 	char* get(unsigned char);
 	void set(INT, unsigned char);
 	void set(char*);

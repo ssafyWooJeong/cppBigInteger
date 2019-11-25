@@ -17,15 +17,22 @@ int main()
 
 	//uint32_t a = UINT32_MAX;
 	//uint32_t b = UINT32_MAX;
-
+	//
 	//uint32_t c = 0;
 	//c = a + b;
 
-	BigInteger obj1(255);
-	BigInteger obj2(1);
+	//BigInteger obj1(UINT32_MAX);
+	//BigInteger obj2(UINT32_MAX - 3);
+	//
+	//obj1.add(obj2);
 
-	obj1.add(obj2);
-	
+	//BigInteger obj3(5);
+	//BigInteger obj4(3);
+	//obj3.sub(obj4);
+
+	BigInteger obj5(7);
+	BigInteger obj6(10);
+	obj5.sub(obj6);
 
 	return 0;
 }
