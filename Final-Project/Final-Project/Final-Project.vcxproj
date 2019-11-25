@@ -129,7 +129,6 @@
     <ClInclude Include="node.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BigInteger.cpp" />
     <ClCompile Include="list.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="node.cpp" />

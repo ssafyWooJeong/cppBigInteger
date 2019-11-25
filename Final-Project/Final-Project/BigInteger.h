@@ -1,6 +1,9 @@
 #pragma once
 #include "header.h"
-#include "cstdint"
+#include <cstddef>
+#include <intrin.h>
+#include <cstdint>
+#include <cstring>
 
 #define TARGET AMD64
 #define USECACHE TRUE
@@ -15,12 +18,27 @@
 
 #define MAX_POSITION 10000 // Maximum of positional number for printing eg) 4 -> [0:9999]
 
-#define isPositive(flag) 0x01 & flag
-#define isNegative(flag) 0x01 & ~flag
-#define isDecimal(flag) 0x02 & flag
-#define isOctal(flag) 0x04 & flag
-#define isHexagon(flag) 0x08 & flag
-#define isCalculated(flag) 0x10 & flag
+#define POSITIVE 0x01
+#define DECIAML 0x02
+#define OCTAL 0x04
+#define Hexagon 0x08
+#define CALCULATED 0x10
+#define COMPLEMENT 0x20
+
+#define isPositive(flag) POSITIVE & flag
+#define isNegative(flag) POSITIVE & ~flag
+#define isDecimal(flag) DECIAML & flag
+#define isOctal(flag) OCTAL & flag
+#define isHexagon(flag) Hexagon & flag
+#define isCalculated(flag) CALCULATED & flag
+#define isComplement(flag) COMPLEMENT & flag
+
+#define isCarrySet() __readeflags() & 0x001
+
+/*
+ * EFLAG INFOS
+ * EFL = OF DF IF TF / SF ZF 0 AF / 0 PF 1 CF
+ */
 
 class BigInteger
 {
@@ -37,14 +55,97 @@ private:
 #endif
 	
 public:
-	BigInteger();
-	BigInteger(INT, unsigned flag);
-	BigInteger(char*);
-	BigInteger multi(BigInteger);
-	BigInteger div(BigInteger);
-	BigInteger add(BigInteger);
-	BigInteger sub(BigInteger);
-	BigInteger mod(BigInteger);
+	BigInteger()
+	{
+		this->lst = list<INT>();
+		this->flags = 0;
+	}
+	BigInteger(INT data, unsigned char flag = DECIAML)
+	{
+		this->lst = list<INT>(data);
+		this->flags = flag;
+	}
+	BigInteger(char* num)
+	{
+		if (num == nullptr) // add exception handling when needed
+		{
+			this->lst = list<INT>();
+			this->flags = 0;
+
+			return;
+		}
+
+		if (num[0] != '0') // when starting number is not zero, assume that is decimal
+		{
+			this->flags = DECIAML;
+
+			INT tmp = 0;
+			INT accumulater = 0;
+			INT base = 1;
+			for(INT cnt = strlen(num); cnt != 0; cnt--)
+			{
+				if(isCarrySet())
+				{
+					
+				}
+
+				accumulater = accumulater + (num[cnt] - '0') * base;
+			}
+			
+		}
+	}
+	BigInteger(BigInteger& old)
+	{
+		
+	}
+	BigInteger& multi(BigInteger);
+	BigInteger& div(BigInteger);
+	BigInteger& add(BigInteger right)
+	{
+		list<INT> nlst(right.lst);
+
+		INT leftCnt = this->lst.getSize(), rightCnt = right.lst.getSize();
+		bool carry = false;
+
+		while(leftCnt != 0 && rightCnt != 0)
+		{
+			if(leftCnt > 0 && rightCnt > 0)
+			{
+				this->lst.at(this->lst.getSize() - leftCnt) += right.lst.at(right.lst.getSize() - rightCnt) + (carry ? 1 : 0);
+			}else if(leftCnt > 0 || rightCnt == 0)
+			{
+				if(carry)
+				{
+					this->lst.at(this->lst.getSize() - leftCnt) += 1;
+				}else
+				{
+					break;
+				}
+			}else if(leftCnt == 0 && rightCnt > 0)
+			{
+				this->lst.append(right.lst.at(right.lst.getSize() - rightCnt) + (carry ? 1 : 0));
+			}
+			
+			if (isCarrySet())
+			{
+				carry = true;
+			}
+			else
+			{
+				carry = false;
+			}
+		}
+
+		if(carry)
+		{
+			this->lst.append(1);
+		}
+
+
+		return *this;
+	}
+	BigInteger& sub(BigInteger);
+	BigInteger& mod(BigInteger);
 	char* get(unsigned char);
 	void set(INT, unsigned char);
 	void set(char*);

@@ -17,12 +17,15 @@ private:
 	node<T>* tail;
 	int size;
 public:
+	friend class BigInteger;
 	list();
 	list(T);
+	list(list<T>&);
 	~list();
-	T at(int);
+	T& at(int);
 	void append(T);
 	int remove(int);
 	int indexOf(T);
 	int insert(int, T);
+	int getSize();
 };

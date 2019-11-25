@@ -13,10 +13,32 @@ list<T>::list()
 template <typename T>
 list<T>::list(T data)
 {
-	node<T> ptr = new node<T>(data);
+	node<T>* ptr = new node<T>;
+	ptr->setData(data);
 	this->head = ptr;
 	this->tail = ptr;
 	this->size = 1;
+}
+
+template <typename T>
+list<T>::list(list<T>& old)
+{
+	this->size = old.size;
+	this->head = new node<T>();
+	this->head->setData(old.head->getData());
+	node<T>* ptr = old.head->getNext();
+	node<T>* ptr2 = this->head;
+
+	while (ptr != nullptr)
+	{
+		ptr2->setNext(new node<T>());
+		ptr2->getNext()->setData(ptr->getData());
+		ptr2->getNext()->setPrev(ptr2);
+
+		ptr = ptr->getNext();
+		ptr2 = ptr2->getNext();
+		this->tail = ptr2;
+	}
 }
 
 template <typename T>
@@ -28,16 +50,16 @@ list<T>::~list()
 	while(ptr != nullptr)
 	{
 		tmp = ptr;
-		ptr = ptr.getNext();
+		ptr = ptr->getNext();
 		delete tmp;
 	}
 }
 
 template <typename T>
-T list<T>::at(int index)
+T& list<T>::at(int index)
 {
-	if (index >= this->size)
-		return NULL;
+	//if (index >= this->size)
+	//	return NULL;
 	
 	node<T>* ptr = this->head;
 	int iter = 0;
@@ -170,3 +192,10 @@ int list<T>::insert(int index, T data)
 
 	return 0;
 }
+
+template <typename T>
+int list<T>::getSize()
+{
+	return this->size;
+}
+

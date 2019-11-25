@@ -37,7 +37,7 @@ void node<T>::setNext(node* ptr)
 }
 
 template <typename T>
-T node<T>::getData()
+T& node<T>::getData()
 {
 	return data;
 }

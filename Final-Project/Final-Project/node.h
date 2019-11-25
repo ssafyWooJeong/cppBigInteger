@@ -20,7 +20,7 @@ public:
 	void setData(T);
 	void setPrev(node*);
 	void setNext(node*);
-	T getData();
+	T& getData();
 	node* getPrev();
 	node* getNext();
 };

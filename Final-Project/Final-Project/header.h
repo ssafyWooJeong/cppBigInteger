@@ -4,4 +4,3 @@
 #include "list.h"
 #include "list.cpp"
 #include "BigInteger.h"
-#include "BigInteger.cpp"
