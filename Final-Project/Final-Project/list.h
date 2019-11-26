@@ -18,14 +18,17 @@ private:
 	int size;
 public:
 	friend class BigInteger;
+	friend bool operator==(const BigInteger& left, const BigInteger& right);
+	friend bool operator<(const BigInteger& left, const BigInteger& right);
+	friend bool operator>(const BigInteger& left, const BigInteger& right);
 	list();
 	list(T);
 	list(list<T>&);
 	~list();
-	T& at(int);
+	T& at(unsigned int);
 	void append(T);
-	int remove(int);
+	int remove(unsigned int);
 	int indexOf(T);
-	int insert(int, T);
+	int insert(unsigned int, T);
 	int getSize();
 };

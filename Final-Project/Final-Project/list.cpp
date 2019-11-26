@@ -56,7 +56,7 @@ list<T>::~list()
 }
 
 template <typename T>
-T& list<T>::at(int index)
+T& list<T>::at(unsigned int index)
 {
 	//if (index >= this->size)
 	//	return NULL;
@@ -106,7 +106,7 @@ void list<T>::append(T data)
 }
 
 template <typename T>
-int list<T>::remove(int index)
+int list<T>::remove(unsigned int index)
 {
 	if(index >= this->size)
 	{
@@ -163,7 +163,7 @@ int list<T>::indexOf(T data)
 }
 
 template <typename T>
-int list<T>::insert(int index, T data)
+int list<T>::insert(unsigned int index, T data)
 {
 	if(this->size < index) // out of bound
 	{
