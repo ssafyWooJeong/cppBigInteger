@@ -5,6 +5,7 @@
 #include <intrin.h>
 #include <cstdint>
 #include <cstring>
+#include <memory>
 
 #define TARGET AMD64
 #define USECACHE TRUE
@@ -22,17 +23,17 @@
 #define POSITIVE 0x01
 #define DECIMAL 0x02
 #define OCTAL 0x04
-#define Hexagon 0x08
+#define HEXAGON 0x08
 #define CALCULATED 0x10
 #define COMPLEMENT 0x20
 #define DIVIDEBYZERO 0x40
 #define ERROR 0x80
 
 #define isPositive(flag) POSITIVE & flag
-#define isNegative(flag) POSITIVE & ~flag
+#define isNegative(flag) !(POSITIVE & flag)
 #define isDecimal(flag) DECIMAL & flag
 #define isOctal(flag) OCTAL & flag
-#define isHexagon(flag) Hexagon & flag
+#define isHexagon(flag) HEXAGON & flag
 #define isCalculated(flag) CALCULATED & flag
 #define isComplement(flag) COMPLEMENT & flag
 #define isDivideByZero(flag) DIVIDEBYZERO & flag
@@ -58,8 +59,7 @@ private:
 	// E : Error		Divz : Divided by Zero 	2C : 2's Complement 	C : Calculated		
 	// H : Hexagon		O	 : Octal 			D  : Decimal			S : Sign bit
 
-	void calculate(unsigned char);
-#if USECACHE==TRUE
+#if USECACHE == TRUE
 	char* str;
 #endif
 	
@@ -178,6 +178,125 @@ public:
 			}
 		}
 	}
+	void set(char* num)
+	{
+		this->lst = list<INT>();
+		
+		if (num == nullptr) // add exception handling when needed
+		{
+			this->flags = ERROR;
+
+			return;
+		}
+
+		if(num[0] == '-') // when starting character is minus, the number is negative
+		{
+			this->flags = 0;
+		}else
+		{
+			this->flags = POSITIVE;
+		}
+
+		for(INT i = (0 + (isNegative(this->flags)?1:0)); i < strlen(num); i++)
+		{
+			if(num[i] <'0' || (num[i] > '9' && num[i] < 'A') || (num[i] > 'Z'  && num[i] < 'a') || num[i] > 'z')
+			{
+				this->flags = ERROR;
+
+				return;
+			}
+		}
+		
+		if (num[0 + (isNegative(this->flags) ? 1 : 0) ] != '0') // when starting number is not zero, assume that is decimal
+		{
+			this->flags |= DECIMAL;
+
+			INT tmp = 0;
+			INT accumulater = 0;
+			INT base = 1;
+			for (INT cnt = strlen(num); cnt != (0 + (isNegative(this->flags) ? 1 : 0)); cnt--)
+			{
+				tmp = accumulater;
+				accumulater = accumulater + (num[cnt] - '0') * base;
+				base *= 10;
+				if(isCarrySet())
+				{
+					this->lst.append(tmp);
+					base = 1;
+					accumulater = 0;
+				}
+			}
+
+		}else if(num[0 + (isNegative(this->flags) ? 1 : 0)] == '0')
+		{
+			if(num[1 + (isNegative(this->flags) ? 1 : 0)] == 'x' || num[1 + (isNegative(this->flags) ? 1 : 0)] == 'X') // hexagon
+			{
+				this->flags |= HEXAGON;
+				this->lst.append((num[2] <= '9'? (num[2] - '0'):(num[2] >= 'a'?num[2]-'a': num[2]-'A')));
+				INT iter = 3;
+				node<INT>* ptr;
+				INT buffer = 0;
+				INT buffer2 = 0;
+
+				while(iter < strlen(num))
+				{
+					if(this->lst.tail->getData() >= (1 << 4 * (sizeof(INT) - 1)))
+					{
+						lst.append(0);
+					}
+					ptr = this->lst.head;
+					buffer = buffer2 = 0;
+					while (ptr != nullptr)
+					{
+						buffer2 = buffer;
+						buffer = (ptr->getData() & (0xf << 4 * (sizeof(INT) - 1)));
+						ptr->setData((ptr->getData() << 4) | buffer2);
+
+						ptr = ptr->getNext();
+					}
+					this->lst.head->setData(this->lst.head->getData() | (num[iter] <= '9' ? (num[iter] - '0') : (num[iter] >= 'a' ? num[iter] - 'a' : num[iter] - 'A')));
+					iter++;
+				}
+				
+			}else // octal
+			{
+				this->flags |= OCTAL;
+
+				this->lst.append(num[2] - '0');
+				INT iter = 2;
+				node<INT>* ptr;
+				INT buffer = 0;
+				INT buffer2 = 0;
+
+				while (iter < strlen(num))
+				{
+					if (this->lst.tail->getData() >= (1 << 3 * (sizeof(INT) - 1)))
+					{
+						lst.append(0);
+					}
+					ptr = this->lst.head;
+					buffer = buffer2 = 0;
+					while (ptr != nullptr)
+					{
+						buffer2 = buffer;
+						buffer = (ptr->getData() & (07 << 3 * (sizeof(INT) - 1)));
+						ptr->setData((ptr->getData() << 3) | buffer2);
+
+						ptr = ptr->getNext();
+					}
+					this->lst.head->setData(this->lst.head->getData() | num[iter] - '0');
+					iter++;
+				}
+			}
+		}
+
+#if USECACHE == TRUE
+		str = new char[strlen(num) + 1];
+		strcpy(str, num);
+		str[strlen(num)] = '\0';
+#endif
+	}
+
 	BigInteger()
 	{
 		this->lst = list<INT>();
@@ -197,39 +316,7 @@ public:
 	}
 	BigInteger(char* num)
 	{
-		if (num == nullptr) // add exception handling when needed
-		{
-			this->lst = list<INT>();
-			this->flags = 0;
-
-			return;
-		}
-
-		if (num[0] != '0') // when starting number is not zero, assume that is decimal
-		{
-			this->flags = DECIMAL;
-
-			INT tmp = 0;
-			INT accumulater = 0;
-			INT base = 1;
-			for(INT cnt = strlen(num); cnt != 0; cnt--)
-			{
-				if(isCarrySet())
-				{
-					
-				}
-
-				accumulater = accumulater + (num[cnt] - '0') * base;
-			}
-			
-		}
-
-#if USECACHE == TRUE
-		str = new char[strlen(num) + 1];
-		strcpy(str, num);
-		str[strlen(num)] = '\0';
-#endif
-		
+		this->set(num);
 	}
 	BigInteger(BigInteger& old)
 	{
@@ -524,9 +611,169 @@ public:
 
 		return *this;
 	}
-	char* get(unsigned char mode = DECIMAL);
-	void set(INT, unsigned char);
-	void set(char*);
+	std::shared_ptr<char[]> get(unsigned char mode = DECIMAL) // use shared pointer, because we can't know whether the caller will free the memory or not
+	{
+#if USECACHE == TRUE
+		if(isCalculated(this->flags))
+		{
+			if(this->flags & mode)// saved string match user's want or calculated, return this by shared pointer
+			{		
+				std::shared_ptr<char[]> nptr(new char[strlen(this->str) + 1], std::default_delete<char[]>());
+				for (int i = 0; i < strlen(this->str); i++)
+				{
+					nptr[i] = this->str[i];
+				}
+				nptr[strlen(this->str)] = '\0';
+
+				return nptr;
+			}
+		}
+#endif
+
+		char* tmpResult;
+		INT cnt = 0;
+		INT i;
+		std::shared_ptr<char[]> result;
+		
+		if(mode & DECIMAL)
+		{
+			tmpResult = new char[MAX_POSITION];
+			BigInteger tmp(*this);
+			BigInteger zero((INT)0);
+			BigInteger ten((INT)10);
+
+			while(tmp > zero)
+			{
+				BigInteger tmp2(tmp);
+				tmp2.mod(ten);
+				tmpResult[cnt++] = tmp2.lst.at(0) + '0';
+				tmp.div(ten);
+			}
+
+			result = std::shared_ptr<char[]>(new char[strlen(tmpResult + 1)]);
+
+			for(i = 0; i < strlen(tmpResult); i++)
+			{
+				result[i] = tmpResult[--cnt];
+			}
+
+			result[i] = '\0';
+		}else if(mode & HEXAGON)
+		{
+			BigInteger tmp(*this);
+			INT buffer = 0;
+			INT buffer2 = 0;
+			node<INT>* ptr;
+			tmpResult = new char[MAX_POSITION];
+
+			while(1)
+			{
+				tmpResult[cnt++] = ((tmp.lst.at(0) & 0xf) >=10 ? (tmp.lst.at(0) &0xf) + 55 : (tmp.lst.at(0) & 0x0f) + '0'); // A's ASCII code : 65
+				ptr = tmp.lst.tail;
+				
+				while(ptr != nullptr)
+				{
+					buffer2 = buffer;
+					buffer = (ptr->getData() & 0xf);
+					ptr->setData((ptr->getData() >> 4) | (buffer2 << 4));
+
+					ptr = ptr->getPrev();
+					if(ptr->getNext()->getData() == 0)
+					{
+						delete ptr->getNext();
+						ptr->setNext(nullptr);
+						tmp.lst.size--;
+					}
+				}
+
+				if((tmp.lst.getSize() == 1) && (tmp.lst.at(0) ==0))
+				{
+					break;
+				}
+			}
+
+			result = std::shared_ptr<char[]>(new char[strlen(tmpResult + 3)]);
+
+			result[0] = '0';
+			result[1] = 'x';
+			for (i = 2; i < strlen(tmpResult) + 2; i++)
+			{
+				result[i] = tmpResult[--cnt];
+			}
+
+			result[i] = '\0';
+			
+		}else if(mode & OCTAL)
+		{
+			BigInteger tmp(*this);
+			INT buffer = 0;
+			INT buffer2 = 0;
+			node<INT>* ptr;
+			tmpResult = new char[MAX_POSITION];
+
+			while (1)
+			{
+				tmpResult[cnt++] = (tmp.lst.at(0) & 07) + '0';
+				ptr = tmp.lst.tail;
+
+				while (ptr != nullptr)
+				{
+					buffer2 = buffer;
+					buffer = (ptr->getData() & 07);
+					ptr->setData((ptr->getData() >> 3) | (buffer2 << 5));
+
+					ptr = ptr->getPrev();
+					if (ptr->getNext()->getData() == 0)
+					{
+						delete ptr->getNext();
+						ptr->setNext(nullptr);
+						tmp.lst.size--;
+					}
+				}
+
+				if ((tmp.lst.getSize() == 1) && (tmp.lst.at(0) == 0))
+				{
+					break;
+				}
+			}
+
+			result = std::shared_ptr<char[]>(new char[strlen(tmpResult + 2)]);
+
+			result[0] = '0';
+			for (i = 1; i < strlen(tmpResult) + 1; i++)
+			{
+				result[i] = tmpResult[--cnt];
+			}
+
+			result[i] = '\0';
+
+		}else // error 
+		{
+			this->flags |= ERROR;
+			return std::shared_ptr<char[]>(nullptr);
+		}
+#if USECACHE == TRUE
+		INT tmp = 0;
+		while(result[tmp++] != '\0'){}
+		this->str = new char[tmp + 1];
+		for(INT i = 0; i <= tmp; i++)
+		{
+			this->str[i] = result[i];
+		}
+		this->flags |= CALCULATED;
+#endif
+		
+		return result;
+	}
+	void set(INT data, unsigned char flag)
+	{
+		this->lst = list<INT>();
+		this->lst.append(data);
+		this->flags = flag;
+#if USECACHE == TRUE
+		str = nullptr;
+#endif
+	}
 	unsigned char getFlags()
 	{
 		return this->flags;

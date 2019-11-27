@@ -1,5 +1,4 @@
 #include <iostream>
-
 #include "header.h"
 using namespace std;
 
@@ -30,9 +29,20 @@ int main()
 	//BigInteger obj4(3);
 	//obj3.sub(obj4);
 
-	BigInteger obj5(7);
-	BigInteger obj6(10);
-	obj5.sub(obj6);
+	//BigInteger obj5(7);
+	//BigInteger obj6(10);
+	//obj5.sub(obj6);
+	
+	BigInteger obj7((char *)"7");
+	BigInteger obj8((char*)"0xf");
 
+	cout << obj7.get() << endl;
+	cout << obj8.get() << endl;
+
+	obj7.multi(obj8);
+
+	cout << obj7.get() << endl;
+	
+	
 	return 0;
 }
