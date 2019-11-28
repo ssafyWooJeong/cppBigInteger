@@ -124,13 +124,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BigInteger.h" />
+    <ClInclude Include="BigIntNerualNet.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="header.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="node.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="list.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="node.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

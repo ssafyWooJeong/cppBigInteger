@@ -35,6 +35,7 @@ public:
 		}
 		
 		this->size = right.size;
+		
 		this->head = new node<T>();
 		this->tail = this->head;
 		this->head->setData(right.head->getData());

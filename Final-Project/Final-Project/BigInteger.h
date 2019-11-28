@@ -18,7 +18,7 @@
 #define INT uint8_t
 #endif
 
-#define MAX_POSITION 1000 // Maximum of positional number for printing eg) 4 -> [0:9999]
+#define MAX_POSITION 1000000 // Maximum of positional number for printing eg) 4 -> [0:9999]
 
 #define POSITIVE 0x01
 #define DECIMAL 0x02
@@ -286,7 +286,7 @@ public:
 					accumulater = 0;
 				}
 
-				if (--cnt == 0)
+				if (cnt-- == 0 || num[cnt] == '-')
 					break;
 			}
 			this->lst.append(accumulater);
@@ -303,7 +303,7 @@ public:
 
 				while(iter < strlen(num))
 				{
-					if(this->lst.tail->getData() >= (1 << 4 * (sizeof(INT) - 1)))
+					if(this->lst.tail->getData() >= (1 << 8 * (sizeof(INT) - 1) + 4))
 					{
 						lst.append(0);
 					}
@@ -312,12 +312,12 @@ public:
 					while (ptr != nullptr)
 					{
 						buffer2 = buffer;
-						buffer = (ptr->getData() & (0xf << 4 * (sizeof(INT) - 1)));
+						buffer = (ptr->getData() & (0xf << 8 * (sizeof(INT) - 1) + 4));
 						ptr->setData((ptr->getData() << 4) | buffer2);
 
 						ptr = ptr->getNext();
 					}
-					this->lst.head->setData(this->lst.head->getData() | (num[iter] <= '9' ? (num[iter] - '0') : (num[iter] >= 'a' ? num[iter] - 'a' : num[iter] - 'A')));
+					this->lst.head->setData(this->lst.head->getData() | (num[iter] <= '9' ? (num[iter] - '0') : (num[iter] >= 'a' ? num[iter] - 'a' + 10 : num[iter] - 'A' + 10)));
 					iter++;
 				}
 				
@@ -333,7 +333,7 @@ public:
 
 				while (iter < strlen(num))
 				{
-					if (this->lst.tail->getData() >= (1 << 3 * (sizeof(INT) - 1)))
+					if (this->lst.tail->getData() >= (1 << 8 * (sizeof(INT) - 1) + 5))
 					{
 						lst.append(0);
 					}
@@ -342,7 +342,7 @@ public:
 					while (ptr != nullptr)
 					{
 						buffer2 = buffer;
-						buffer = (ptr->getData() & (07 << 3 * (sizeof(INT) - 1)));
+						buffer = (ptr->getData() & (07 << 8 * (sizeof(INT) - 1) + 5));
 						ptr->setData((ptr->getData() << 3) | buffer2);
 
 						ptr = ptr->getNext();
@@ -748,29 +748,48 @@ public:
 			node<INT>* ptr;
 			tmpResult = new char[MAX_POSITION];
 
+			INT hex = 0xf0;
+			for (INT i = 0; i < sizeof(INT) - 1; i++)
+			{
+				hex = hex << 8;
+			}
+
 			while(1)
 			{
 				tmpResult[cnt++] = ((tmp.lst.at(0) & 0xf) >=10 ? (tmp.lst.at(0) &0xf) + 55 : (tmp.lst.at(0) & 0x0f) + '0'); // A's ASCII code : 65
 				ptr = tmp.lst.tail;
+				buffer = buffer2 = 0;
 				
 				while(ptr != nullptr)
 				{
 					buffer2 = buffer;
 					buffer = (ptr->getData() & 0xf);
-					ptr->setData((ptr->getData() >> 4) | (buffer2 << 4));
+					ptr->setData((ptr->getData() >> 4) | (buffer2 << 8 * (sizeof(INT) -1) + 4));
 
-					ptr = ptr->getPrev();
+					if(ptr->getPrev() != nullptr)
+						ptr = ptr->getPrev();
 					if(ptr == nullptr)
 					{
 						break;
 					}
-					
-					if(ptr->getNext()->getData() == 0)
+
+					if (ptr->getNext() != nullptr)
 					{
-						delete ptr->getNext();
-						ptr->setNext(nullptr);
-						tmp.lst.size--;
+						if (ptr->getNext()->getData() == 0)
+						{
+							delete ptr->getNext();
+							ptr->setNext(nullptr);
+							tmp.lst.size--;
+
+							node<INT>* tmpP = tmp.lst.head;
+							while(tmpP->getNext() != nullptr)
+							{
+								tmpP = tmpP->getNext();
+							}
+							tmp.lst.tail = tmpP;
+						}
 					}
+					else break;
 				}
 
 				if((tmp.lst.getSize() == 1) && (tmp.lst.at(0) ==0))
@@ -804,24 +823,38 @@ public:
 			{
 				tmpResult[cnt++] = (tmp.lst.at(0) & 07) + '0';
 				ptr = tmp.lst.tail;
+				buffer = buffer2 = 0;
 
 				while (ptr != nullptr)
 				{
 					buffer2 = buffer;
 					buffer = (ptr->getData() & 07);
-					ptr->setData((ptr->getData() >> 3) | (buffer2 << 5));
+					ptr->setData((ptr->getData() >> 3) | (buffer2 << 8 *(sizeof(INT) - 1) + 5));
 
-					ptr = ptr->getPrev();
+					if (ptr->getPrev() != nullptr)
+						ptr = ptr->getPrev();
+					
 					if (ptr == nullptr)
 					{
 						break;
 					}
-					if (ptr->getNext()->getData() == 0)
+					
+					if (ptr->getNext() != nullptr)
 					{
-						delete ptr->getNext();
-						ptr->setNext(nullptr);
-						tmp.lst.size--;
+						if (ptr->getNext()->getData() == 0)
+						{
+							delete ptr->getNext();
+							ptr->setNext(nullptr);
+							tmp.lst.size--;
+							node<INT>* tmpP = tmp.lst.head;
+							while (tmpP->getNext() != nullptr)
+							{
+								tmpP = tmpP->getNext();
+							}
+							tmp.lst.tail = tmpP;
+						}
 					}
+					else break;
 				}
 
 				if ((tmp.lst.getSize() == 1) && (tmp.lst.at(0) == 0))
@@ -873,5 +906,45 @@ public:
 	unsigned char getFlags()
 	{
 		return this->flags;
+	}
+
+	BigInteger operator+(BigInteger& right)
+	{
+		BigInteger tmp(*this);
+		tmp.add(right);
+
+		return tmp;
+	}
+
+	BigInteger operator-(BigInteger& right)
+	{
+		BigInteger tmp(*this);
+		tmp.sub(right);
+
+		return tmp;
+	}
+
+	BigInteger operator*(BigInteger& right)
+	{
+		BigInteger tmp(*this);
+		tmp.multi(right);
+
+		return tmp;
+	}
+
+	BigInteger operator/(BigInteger& right)
+	{
+		BigInteger tmp(*this);
+		tmp.div(right);
+
+		return tmp;
+	}
+
+	BigInteger operator%(BigInteger& right)
+	{
+		BigInteger tmp(*this);
+		tmp.mod(right);
+
+		return tmp;
 	}
 };

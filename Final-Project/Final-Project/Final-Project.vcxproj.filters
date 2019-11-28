@@ -27,6 +27,9 @@
     <ClInclude Include="header.h">
       <Filter>소스 파일</Filter>
     </ClInclude>
+    <ClInclude Include="BigIntNerualNet.h">
+      <Filter>소스 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="node.cpp">
