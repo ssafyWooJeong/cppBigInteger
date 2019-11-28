@@ -33,10 +33,10 @@ int main()
 	//BigInteger obj6(10);
 	//obj5.sub(obj6);
 	
-	BigInteger obj7((char *)"7");
+	BigInteger obj7((char *)"-7");
 	BigInteger obj8((char*)"0xf");
 
-	cout << obj7.get() << endl;
+	cout << obj7.get(OCTAL) << endl;
 	cout << obj8.get() << endl;
 
 	obj7.multi(obj8);

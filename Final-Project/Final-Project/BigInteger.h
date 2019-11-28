@@ -18,7 +18,7 @@
 #define INT uint8_t
 #endif
 
-#define MAX_POSITION 10000 // Maximum of positional number for printing eg) 4 -> [0:9999]
+#define MAX_POSITION 1000 // Maximum of positional number for printing eg) 4 -> [0:9999]
 
 #define POSITIVE 0x01
 #define DECIMAL 0x02
@@ -45,10 +45,20 @@
  // NOT x86 and AMD64
 #endif
 
+
 /*
  * EFLAG INFOS
  * EFL = OF DF IF TF / SF ZF 0 AF / 0 PF 1 CF
  */
+
+template<typename T>
+struct ArrayDeleter
+{
+	void operator () (T* p)
+	{
+		delete[] p;
+	}
+};
 
 class BigInteger
 {
@@ -129,6 +139,55 @@ public:
 			}
 		}
 	}
+	friend bool operator>=(const BigInteger& left, const BigInteger& right)
+	{
+		if (isPositive(left.flags) && isPositive(right.flags))
+		{
+			if (left.lst.size > right.lst.size)
+			{
+				return true;
+			}
+			else if (left.lst.size < right.lst.size)
+			{
+				return false;
+			}
+			else // same list size
+			{
+				if (const_cast<BigInteger&>(left).lst.at(left.lst.size - 1) >= const_cast<BigInteger&>(right).lst.at(left.lst.size - 1))
+				{
+					return true;
+				}
+				else return false;
+			}
+		}
+		else if (isNegative(left.flags) && isPositive(right.flags))
+		{
+			return false;
+		}
+		else if (isPositive(left.flags) && isNegative(right.flags))
+		{
+			return true;
+		}
+		else // both negative
+		{
+			if (left.lst.size < right.lst.size)
+			{
+				return true;
+			}
+			else if (left.lst.size > right.lst.size)
+			{
+				return false;
+			}
+			else // same list size
+			{
+				if (const_cast<BigInteger&>(left).lst.at(left.lst.size - 1) <= const_cast<BigInteger&>(right).lst.at(left.lst.size - 1))
+				{
+					return true;
+				}
+				else return false;
+			}
+		}
+	}
 	friend bool operator>(const BigInteger& left, const BigInteger& right)
 	{
 		if (isPositive(left.flags) && isPositive(right.flags))
@@ -170,7 +229,7 @@ public:
 			}
 			else // same list size
 			{
-				if (const_cast<BigInteger&>(left).lst.at(left.lst.size - 1) <= const_cast<BigInteger&>(right).lst.at(left.lst.size - 1))
+				if (const_cast<BigInteger&>(left).lst.at(left.lst.size - 1) < const_cast<BigInteger&>(right).lst.at(left.lst.size - 1))
 				{
 					return true;
 				}
@@ -214,25 +273,29 @@ public:
 			INT tmp = 0;
 			INT accumulater = 0;
 			INT base = 1;
-			for (INT cnt = strlen(num); cnt != (0 + (isNegative(this->flags) ? 1 : 0)); cnt--)
+			INT cnt = strlen(num) - 1;
+			while(1)
 			{
 				tmp = accumulater;
 				accumulater = accumulater + (num[cnt] - '0') * base;
 				base *= 10;
-				if(isCarrySet())
+				if (isCarrySet())
 				{
 					this->lst.append(tmp);
 					base = 1;
 					accumulater = 0;
 				}
-			}
 
+				if (--cnt == 0)
+					break;
+			}
+			this->lst.append(accumulater);
 		}else if(num[0 + (isNegative(this->flags) ? 1 : 0)] == '0')
 		{
 			if(num[1 + (isNegative(this->flags) ? 1 : 0)] == 'x' || num[1 + (isNegative(this->flags) ? 1 : 0)] == 'X') // hexagon
 			{
 				this->flags |= HEXAGON;
-				this->lst.append((num[2] <= '9'? (num[2] - '0'):(num[2] >= 'a'?num[2]-'a': num[2]-'A')));
+				this->lst.append((num[2] <= '9'? (num[2] - '0'):(num[2] >= 'a'?num[2]-'a' + 10: num[2]-'A' + 10)));
 				INT iter = 3;
 				node<INT>* ptr;
 				INT buffer = 0;
@@ -323,9 +386,12 @@ public:
 		this->lst = list<INT>(old.lst);
 		this->flags = old.flags;
 #if USECACHE == TRUE
-		this->str = new char[strlen(old.str) + 1];
-		strcpy(this->str, old.str);
-		this->str[strlen(old.str)] = '\0';
+		if(old.str != nullptr)
+		{
+			this->str = new char[strlen(old.str) + 1];
+			strcpy(this->str, old.str);
+			this->str[strlen(old.str)] = '\0';
+		}
 #endif
 	}
 	BigInteger& add(BigInteger &right)
@@ -369,6 +435,10 @@ public:
 			this->lst.append(1);
 		}
 
+#if USECACHE == TRUE
+		flags = flags & ~CALCULATED;
+#endif
+		
 		this->flags &= ~ERROR;
 		return *this;
 	}
@@ -476,12 +546,14 @@ public:
 			flags = flags | POSITIVE;
 		}
 
-		while(this->lst.tail->getData() == 0)
+		while(this->lst.tail->getData() == 0 && lst.getSize() > 1)
 		{
 			this->lst.remove(this->lst.size - 1);
-			this->lst.size--;
 		}
-
+		
+#if USECACHE == TRUE
+		flags = flags & ~CALCULATED;
+#endif
 		this->flags &= ~ERROR;
 		return *this;
 	}
@@ -522,7 +594,9 @@ public:
 		{
 			this->flags &= ~POSITIVE;
 		}
-
+#if USECACHE == TRUE
+		flags = flags & ~CALCULATED;
+#endif
 		this->flags &= ~ERROR;
 		return *this;
 	}
@@ -530,7 +604,8 @@ public:
 	{
 		BigInteger lTmp(*this);
 		BigInteger rTmp(right);
-		INT iTmp = 1;
+		BigInteger iTmp((INT)0);
+		BigInteger one(1);
 
 		if (rTmp.lst.getSize() == 1 && rTmp.lst.at(0) == 0) // when right is 0 -> dived by zero, add exception handling when need
 		{
@@ -539,20 +614,14 @@ public:
 			return *this;
 		}
 
-		while (1)
+		while (*this >= right)
 		{
-			if (rTmp.lst.getSize() == 1 && rTmp.lst.at(0) == 0)
-				break;
-
-			if(*this < lTmp)
-			{
-				this->lst = list<INT>(0);
-				return *this;
-			}
-			
-			this->sub(lTmp);
-			rTmp.sub(iTmp);
+			iTmp.add(one);
+			this->sub(right);
 		}
+
+		this->lst = iTmp.lst;
+		this->flags |= ~CALCULATED;
 
 		if (!(isPositive(this->flags) ^ isPositive(right.flags)))
 		{
@@ -562,7 +631,9 @@ public:
 		{
 			this->flags &= ~POSITIVE;
 		}
-
+#if USECACHE == TRUE
+		flags = flags & ~CALCULATED;
+#endif
 		this->flags &= ~ERROR;
 		return *this;
 	}
@@ -581,7 +652,7 @@ public:
 		{
 			while(1)
 			{
-				if(*this > right)
+				if(*this >= right)
 				{
 					this->sub(right);
 				}else
@@ -608,17 +679,23 @@ public:
 				}
 			}
 		}
-
+#if USECACHE == TRUE
+		flags = flags & ~CALCULATED;
+#endif
 		return *this;
 	}
-	std::shared_ptr<char[]> get(unsigned char mode = DECIMAL) // use shared pointer, because we can't know whether the caller will free the memory or not
+	std::shared_ptr<char[]> get(unsigned char mode = DECIMAL|OCTAL|HEXAGON) // use shared pointer, because we can't know whether the caller will free the memory or not
 	{
+		if (mode == (DECIMAL | OCTAL | HEXAGON))
+		{
+			mode = this->flags & (DECIMAL | OCTAL | HEXAGON);
+		}
 #if USECACHE == TRUE
 		if(isCalculated(this->flags))
 		{
 			if(this->flags & mode)// saved string match user's want or calculated, return this by shared pointer
 			{		
-				std::shared_ptr<char[]> nptr(new char[strlen(this->str) + 1], std::default_delete<char[]>());
+				std::shared_ptr<char[]> nptr(new char[strlen(this->str) + 1]);
 				for (int i = 0; i < strlen(this->str); i++)
 				{
 					nptr[i] = this->str[i];
@@ -639,6 +716,7 @@ public:
 		{
 			tmpResult = new char[MAX_POSITION];
 			BigInteger tmp(*this);
+			tmp.flags |= POSITIVE;
 			BigInteger zero((INT)0);
 			BigInteger ten((INT)10);
 
@@ -649,10 +727,14 @@ public:
 				tmpResult[cnt++] = tmp2.lst.at(0) + '0';
 				tmp.div(ten);
 			}
+			tmpResult[cnt] = '\0';
 
-			result = std::shared_ptr<char[]>(new char[strlen(tmpResult + 1)]);
+			result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 2], ArrayDeleter<char>());
 
-			for(i = 0; i < strlen(tmpResult); i++)
+			if (isNegative(this->flags))
+				result[0] = '-';
+			
+			for(i = 0 + (isNegative(this->flags)?1:0); i < strlen(tmpResult) + (isNegative(this->flags) ? 1 : 0); i++)
 			{
 				result[i] = tmpResult[--cnt];
 			}
@@ -678,6 +760,11 @@ public:
 					ptr->setData((ptr->getData() >> 4) | (buffer2 << 4));
 
 					ptr = ptr->getPrev();
+					if(ptr == nullptr)
+					{
+						break;
+					}
+					
 					if(ptr->getNext()->getData() == 0)
 					{
 						delete ptr->getNext();
@@ -691,12 +778,14 @@ public:
 					break;
 				}
 			}
+			tmpResult[cnt] = '\0';
+			result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 4]);
 
-			result = std::shared_ptr<char[]>(new char[strlen(tmpResult + 3)]);
-
-			result[0] = '0';
-			result[1] = 'x';
-			for (i = 2; i < strlen(tmpResult) + 2; i++)
+			if (isNegative(this->flags))
+				result[0] = '-';
+			result[0 + (isNegative(this->flags) ? 1 : 0)] = '0';
+			result[1 + (isNegative(this->flags) ? 1 : 0)] = 'x';
+			for (i = 2 + (isNegative(this->flags) ? 1 : 0); i < strlen(tmpResult) + 2 + (isNegative(this->flags) ? 1 : 0); i++)
 			{
 				result[i] = tmpResult[--cnt];
 			}
@@ -723,6 +812,10 @@ public:
 					ptr->setData((ptr->getData() >> 3) | (buffer2 << 5));
 
 					ptr = ptr->getPrev();
+					if (ptr == nullptr)
+					{
+						break;
+					}
 					if (ptr->getNext()->getData() == 0)
 					{
 						delete ptr->getNext();
@@ -736,11 +829,14 @@ public:
 					break;
 				}
 			}
+			tmpResult[cnt] = '\0';
+			result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 3], ArrayDeleter<char>());
 
-			result = std::shared_ptr<char[]>(new char[strlen(tmpResult + 2)]);
-
-			result[0] = '0';
-			for (i = 1; i < strlen(tmpResult) + 1; i++)
+			if (isNegative(this->flags))
+				result[0] = '-';
+			
+			result[0 + (isNegative(this->flags) ? 1 : 0)] = '0';
+			for (i = 1 + (isNegative(this->flags) ? 1 : 0); i < strlen(tmpResult) + 1 + (isNegative(this->flags) ? 1 : 0); i++)
 			{
 				result[i] = tmpResult[--cnt];
 			}

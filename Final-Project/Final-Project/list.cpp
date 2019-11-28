@@ -25,6 +25,7 @@ list<T>::list(list<T>& old)
 {
 	this->size = old.size;
 	this->head = new node<T>();
+	this->tail = this->head;
 	this->head->setData(old.head->getData());
 	node<T>* ptr = old.head->getNext();
 	node<T>* ptr2 = this->head;
