@@ -21,9 +21,9 @@ void BigIntegerTest(BigInteger& left, BigInteger& right)
 
 int main()
 {
-	BigInteger a(UINT32_MAX);
-	BigInteger b(10);
-	BigIntegerTest(a, b);
+	//BigInteger a(UINT32_MAX);
+	//BigInteger b(10);
+	//BigIntegerTest(a, b);
 	
 	//list<int> obj;
 	//obj.append(1); obj.append(2); obj.append(3); obj.append(4);
@@ -114,11 +114,18 @@ int main()
 	//cout << "Hexagon : " << obj13.get(HEXAGON) << endl;
 	//cout << "OCTAL   : " << obj13.get(OCTAL) << endl << endl;
 
-	//BigIntNerualNet nn;
-	//nn.InitNN();
-	//nn.FeedForward();
-	//nn.ShowResult();
+	BigInteger* arr = new BigInteger[3];
+	arr[0] = BigInteger(1);
+	arr[1] = BigInteger(10);
+	arr[2] = BigInteger(7);
+	int size[3] = { 3, 4, 2 };
 	
+	BigIntNuralNet nn;
+	nn.InitNN(arr, size);
+	nn.InitNNTest();
+	nn.FeedForwardTest();
+	nn.ShowResult();
+
 	
 	return 0;
 }

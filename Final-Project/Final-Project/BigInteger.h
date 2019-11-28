@@ -8,7 +8,10 @@
 #include <memory>
 
 #define TARGET AMD64
-#define USECACHE TRUE
+#define USECACHE FALSE
+
+#define TRUE 1
+#define FALSE 0
 
 #if TARGET == x86
 #define INT uint32_t // change the primitive data type depend on target machine, but when you use less than uint32_t eflag's carry bit unavailable
@@ -74,6 +77,17 @@ private:
 #endif
 	
 public:
+	BigInteger& operator=(const BigInteger& right)
+	{
+		this->lst = right.lst;
+		this->flags = (right.flags & ~CALCULATED);
+#if USECASE == TRUE
+		this->str = nullptr;
+#endif
+
+		return *this;
+	}
+	
 	friend bool operator==(const BigInteger& left, const BigInteger& right)
 	{
 		if(left.lst.size != right.lst.size)
@@ -365,7 +379,7 @@ public:
 	BigInteger()
 	{
 		this->lst = list<INT>();
-		this->flags = 0;
+		this->flags = POSITIVE;
 #if USECACHE == TRUE
 		str = nullptr;
 #endif
@@ -940,7 +954,7 @@ public:
 		return this->flags;
 	}
 
-	BigInteger operator+(BigInteger& right)
+	BigInteger& operator+(BigInteger& right)
 	{
 		BigInteger tmp(*this);
 		tmp.add(right);
@@ -948,7 +962,7 @@ public:
 		return tmp;
 	}
 
-	BigInteger operator-(BigInteger& right)
+	BigInteger& operator-(BigInteger& right)
 	{
 		BigInteger tmp(*this);
 		tmp.sub(right);
@@ -956,7 +970,7 @@ public:
 		return tmp;
 	}
 
-	BigInteger operator*(BigInteger& right)
+	BigInteger& operator*(BigInteger& right)
 	{
 		BigInteger tmp(*this);
 		tmp.multi(right);
@@ -964,7 +978,7 @@ public:
 		return tmp;
 	}
 
-	BigInteger operator/(BigInteger& right)
+	BigInteger& operator/(BigInteger& right)
 	{
 		BigInteger tmp(*this);
 		tmp.div(right);
@@ -972,7 +986,7 @@ public:
 		return tmp;
 	}
 
-	BigInteger operator%(BigInteger& right)
+	BigInteger& operator%(BigInteger& right)
 	{
 		BigInteger tmp(*this);
 		tmp.mod(right);

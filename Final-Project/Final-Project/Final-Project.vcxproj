@@ -132,6 +132,7 @@
     <ClInclude Include="node.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BigIntnNuralNet.cpp" />
     <ClCompile Include="list.cpp" />
     <ClCompile Include="main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
