@@ -354,6 +354,8 @@ public:
 		}
 
 #if USECACHE == TRUE
+		if (this->str != nullptr)
+			delete this->str;		
 		str = new char[strlen(num) + 1];
 		strcpy(str, num);
 		str[strlen(num)] = '\0';
@@ -368,7 +370,7 @@ public:
 		str = nullptr;
 #endif
 	}
-	BigInteger(INT data, unsigned char flag = DECIMAL|POSITIVE)
+	BigInteger(INT data, unsigned char flag = HEXAGON|POSITIVE)
 	{
 		this->lst = list<INT>();
 		this->lst.append(data);
@@ -384,14 +386,9 @@ public:
 	BigInteger(BigInteger& old)
 	{
 		this->lst = list<INT>(old.lst);
-		this->flags = old.flags;
+		this->flags = (old.flags & ~CALCULATED);
 #if USECACHE == TRUE
-		if(old.str != nullptr)
-		{
-			this->str = new char[strlen(old.str) + 1];
-			strcpy(this->str, old.str);
-			this->str[strlen(old.str)] = '\0';
-		}
+		str = nullptr;
 #endif
 	}
 	BigInteger& add(BigInteger &right)
@@ -399,7 +396,7 @@ public:
 		INT leftCnt = this->lst.getSize(), rightCnt = right.lst.getSize();
 		bool carry = false;
 
-		while(leftCnt != 0 && rightCnt != 0)
+		while(leftCnt != 0 || rightCnt != 0)
 		{
 			if(leftCnt > 0 && rightCnt > 0)
 			{
@@ -409,6 +406,7 @@ public:
 				if(carry)
 				{
 					this->lst.at(this->lst.getSize() - leftCnt) += 1;
+					carry = false;
 				}else
 				{
 					break;
@@ -426,8 +424,11 @@ public:
 			{
 				carry = false;
 			}
-			leftCnt--;
-			rightCnt--;
+			if(leftCnt != 0)
+				leftCnt--;
+			
+			if(rightCnt != 0)
+				rightCnt--;
 		}
 
 		if(carry)
@@ -437,8 +438,10 @@ public:
 
 #if USECACHE == TRUE
 		flags = flags & ~CALCULATED;
+		if(this->str != nullptr)
+			delete this->str;
+		this->str = nullptr;
 #endif
-		
 		this->flags &= ~ERROR;
 		return *this;
 	}
@@ -491,7 +494,7 @@ public:
 		INT leftCnt = this->lst.getSize(), rightCnt = nlst.getSize();
 		bool carry = false;
 
-		while (leftCnt != 0 && rightCnt != 0)
+		while (leftCnt != 0 || rightCnt != 0)
 		{
 			if (leftCnt > 0 && rightCnt > 0)
 			{
@@ -502,6 +505,7 @@ public:
 				if (carry)
 				{
 					this->lst.at(this->lst.getSize() - leftCnt) += 1;
+					carry = false;
 				}
 				else
 				{
@@ -521,8 +525,10 @@ public:
 			{
 				carry = false;
 			}
-			leftCnt--;
-			rightCnt--;
+			if(leftCnt != 0)
+				leftCnt--;
+			if(rightCnt != 0)
+				rightCnt--;
 		}
 
 		tmp = 0x80;
@@ -553,6 +559,9 @@ public:
 		
 #if USECACHE == TRUE
 		flags = flags & ~CALCULATED;
+		if(this->str != nullptr)
+			delete this->str;
+		this->str = nullptr;
 #endif
 		this->flags &= ~ERROR;
 		return *this;
@@ -596,6 +605,9 @@ public:
 		}
 #if USECACHE == TRUE
 		flags = flags & ~CALCULATED;
+		if (this->str != nullptr)
+			this->str = nullptr;
+		this->str = nullptr;
 #endif
 		this->flags &= ~ERROR;
 		return *this;
@@ -616,6 +628,13 @@ public:
 
 		while (*this >= right)
 		{
+			if(this->lst.getSize() == 1 && right.lst.getSize() == 1)
+			{
+				BigInteger tmp(this->lst.at(0) / right.lst.at(0));
+				iTmp.add(tmp);
+				break;
+			}
+			
 			iTmp.add(one);
 			this->sub(right);
 		}
@@ -633,6 +652,9 @@ public:
 		}
 #if USECACHE == TRUE
 		flags = flags & ~CALCULATED;
+		if (this->str != nullptr)
+			delete str;
+		this->str = nullptr;
 #endif
 		this->flags &= ~ERROR;
 		return *this;
@@ -654,6 +676,13 @@ public:
 			{
 				if(*this >= right)
 				{
+					if (this->lst.getSize() == 1 && right.lst.getSize() == 1)
+					{
+						*this = BigInteger(this->lst.at(0) % right.lst.at(0));
+
+						return *this;
+					}
+					
 					this->sub(right);
 				}else
 				{
@@ -681,6 +710,9 @@ public:
 		}
 #if USECACHE == TRUE
 		flags = flags & ~CALCULATED;
+		if (this->str != nullptr)
+			delete str;
+		this->str = nullptr;
 #endif
 		return *this;
 	}
