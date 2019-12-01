@@ -21,9 +21,9 @@ void BigIntegerTest(BigInteger& left, BigInteger& right)
 
 int main()
 {
-	//BigInteger a(UINT32_MAX);
-	//BigInteger b(10);
-	//BigIntegerTest(a, b);
+	BigInteger a(UINT32_MAX);
+	BigInteger b(10);
+	BigIntegerTest(a, b);
 	
 	//list<int> obj;
 	//obj.append(1); obj.append(2); obj.append(3); obj.append(4);

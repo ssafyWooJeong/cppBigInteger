@@ -954,7 +954,7 @@ public:
 		return this->flags;
 	}
 
-	BigInteger& operator+(BigInteger& right)
+	BigInteger operator+(BigInteger& right)
 	{
 		BigInteger tmp(*this);
 		tmp.add(right);
@@ -962,7 +962,7 @@ public:
 		return tmp;
 	}
 
-	BigInteger& operator-(BigInteger& right)
+	BigInteger operator-(BigInteger& right)
 	{
 		BigInteger tmp(*this);
 		tmp.sub(right);
@@ -970,7 +970,7 @@ public:
 		return tmp;
 	}
 
-	BigInteger& operator*(BigInteger& right)
+	BigInteger operator*(BigInteger& right)
 	{
 		BigInteger tmp(*this);
 		tmp.multi(right);
@@ -978,7 +978,7 @@ public:
 		return tmp;
 	}
 
-	BigInteger& operator/(BigInteger& right)
+	BigInteger operator/(BigInteger& right)
 	{
 		BigInteger tmp(*this);
 		tmp.div(right);
@@ -986,7 +986,7 @@ public:
 		return tmp;
 	}
 
-	BigInteger& operator%(BigInteger& right)
+	BigInteger operator%(BigInteger& right)
 	{
 		BigInteger tmp(*this);
 		tmp.mod(right);
