@@ -717,10 +717,10 @@ public:
 	}
 	BigInteger& div(BigInteger& right)
 	{
-		BigInteger lTmp(*this);
+		//BigInteger lTmp(*this);
 		BigInteger rTmp(right);
-		BigInteger iTmp((INT)0);
-		BigInteger one(1);
+		//BigInteger iTmp((INT)0);
+		//BigInteger one(1);
 
 		if (rTmp.lst.getSize() == 1 && rTmp.lst.at(0) == 0) // when right is 0 -> dived by zero, add exception handling when need
 		{
@@ -729,20 +729,65 @@ public:
 			return *this;
 		}
 
-		while (*this >= right)
+		INT Tmp = 1;
+		node<INT>* ptr;
+		INT buffer, buffer2;
+		
+		while(*this >= rTmp)
 		{
-			if(this->lst.getSize() == 1 && right.lst.getSize() == 1)
+			this->sub(rTmp);
+
+			while(1)
 			{
-				BigInteger tmp(this->lst.at(0) / right.lst.at(0));
-				iTmp.add(tmp);
-				break;
+				ptr = rTmp.lst.tail;
+				buffer = buffer2 = 0;
+
+				if (ptr->getData() == 0)
+				{
+					ptr->getPrev()->setNext(nullptr);
+					delete ptr;
+					rTmp.lst.size--;
+
+					node<INT>* tmpP = rTmp.lst.head;
+					while (tmpP->getNext() != nullptr)
+					{
+						tmpP = tmpP->getNext();
+					}
+					rTmp.lst.tail = tmpP;
+					ptr = tmpP;
+				}
+
+				while (ptr != nullptr)
+				{
+					buffer2 = buffer;
+					buffer = (ptr->getData() & 1);
+					ptr->setData((ptr->getData() >> 1) | (buffer2 << 8 * sizeof(INT) - 1));
+					if (ptr->getPrev() != nullptr)
+						ptr = ptr->getPrev();
+					else break;
+				}
 			}
-			
-			iTmp.add(one);
-			this->sub(right);
+
+			Tmp++;
 		}
 
-		this->lst = iTmp.lst;
+		this->lst = list<INT>(Tmp);
+			
+		
+		//while (*this >= right)
+		//{
+		//	if(this->lst.getSize() == 1 && right.lst.getSize() == 1)
+		//	{
+		//		BigInteger tmp(this->lst.at(0) / right.lst.at(0));
+		//		iTmp.add(tmp);
+		//		break;
+		//	}
+		//	
+		//	iTmp.add(one);
+		//	this->sub(right);
+		//}
+
+		//this->lst = iTmp.lst;
 		this->flags |= ~CALCULATED;
 
 		if (!(isPositive(this->flags) ^ isPositive(right.flags)))
@@ -855,6 +900,19 @@ public:
 			BigInteger zero((INT)0);
 			BigInteger ten((INT)10);
 
+			if (this->lst.getSize() == 1 && this->lst.at(0) == 0)
+			{
+				result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 3]);
+
+				if (isNegative(this->flags))
+					result[0] = '-';
+				result[0 + (isNegative(this->flags) ? 1 : 0)] = '0';
+				result[1 + (isNegative(this->flags) ? 1 : 0)] = '\0';
+
+				return result;
+			}
+
+			
 			while(tmp > zero)
 			{
 				BigInteger tmp2(tmp);
@@ -885,7 +943,7 @@ public:
 
 			if(this->lst.getSize() == 1 && this->lst.at(0) == 0)
 			{
-				result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 4]);
+				result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 5]);
 
 				if (isNegative(this->flags))
 					result[0] = '-';
@@ -983,12 +1041,42 @@ public:
 			node<INT>* ptr;
 			tmpResult = new char[MAX_POSITION];
 
+			if (this->lst.getSize() == 1 && this->lst.at(0) == 0)
+			{
+				result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 4]);
+
+				if (isNegative(this->flags))
+					result[0] = '-';
+				result[0 + (isNegative(this->flags) ? 1 : 0)] = '0';
+				result[1 + (isNegative(this->flags) ? 1 : 0)] = '0';
+				result[2 + (isNegative(this->flags) ? 1 : 0)] = '\0';
+
+				return result;
+			}
+
+			
 			while (1)
 			{
 				tmpResult[cnt++] = (tmp.lst.at(0) & 07) + '0';
 				ptr = tmp.lst.tail;
 				buffer = buffer2 = 0;
 
+				if (ptr->getData() == 0)
+				{
+					ptr->getPrev()->setNext(nullptr);
+					delete ptr;
+					tmp.lst.size--;
+
+					node<INT>* tmpP = tmp.lst.head;
+					while (tmpP->getNext() != nullptr)
+					{
+						tmpP = tmpP->getNext();
+					}
+					tmp.lst.tail = tmpP;
+					ptr = tmpP;
+				}
+
+				
 				while (ptr != nullptr)
 				{
 					buffer2 = buffer;
@@ -997,13 +1085,9 @@ public:
 
 					if (ptr->getPrev() != nullptr)
 						ptr = ptr->getPrev();
+					else break;
 					
-					if (ptr == nullptr)
-					{
-						break;
-					}
-					
-					if (ptr->getNext() != nullptr)
+					/*if (ptr->getNext() != nullptr)
 					{
 						if (ptr->getNext()->getData() == 0)
 						{
@@ -1018,7 +1102,7 @@ public:
 							tmp.lst.tail = tmpP;
 						}
 					}
-					else break;
+					else break;*/
 				}
 
 				if ((tmp.lst.getSize() == 1) && (tmp.lst.at(0) == 0))
