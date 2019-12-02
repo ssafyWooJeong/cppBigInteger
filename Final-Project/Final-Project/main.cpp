@@ -22,7 +22,7 @@ void BigIntegerTest(BigInteger& left, BigInteger& right)
 int main()
 {
 	BigInteger a(UINT32_MAX);
-	BigInteger b(10);
+	BigInteger b(UINT32_MAX);
 	BigIntegerTest(a, b);
 	
 	//list<int> obj;

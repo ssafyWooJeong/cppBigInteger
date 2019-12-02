@@ -588,27 +588,116 @@ public:
 	}
 	BigInteger& multi(BigInteger& right)
 	{
-		BigInteger lTmp(*this);
-		BigInteger rTmp(right);
-		INT iTmp = 1;
-
-		if(rTmp.lst.getSize() == 1 && rTmp.lst.at(0) ==0) // when right is 0
+		if (right.lst.getSize() == 1 && right.lst.at(0) == 0) // when right is 0
 		{
 			this->lst = list<INT>();
 			lst.append(0);
 			this->flags |= POSITIVE;
-			
+
 			return *this;
 		}
+		
+		BigInteger* lTmp = nullptr;
+		BigInteger *rTmp = nullptr;
 
-		while(1) // rTmp.lst.getSize() >= 1
+		if(*this > right)
 		{
-			if (rTmp.lst.getSize() == 1 && rTmp.lst.at(0) == 1)
-				break;
-			
-			this->add(lTmp);
-			rTmp.sub(iTmp);
+			lTmp = new BigInteger(*this);
+			rTmp = new BigInteger(right);
+		}else
+		{
+			lTmp = new BigInteger(right);
+			rTmp = new BigInteger(*this);
 		}
+		
+		//BigInteger lTmp(*this);
+		//BigInteger rTmp(right);
+		INT iTmp = 0;
+		node<INT>* ptr = nullptr;
+		INT buffer = 0, buffer2 = 0;
+
+		this->lst = list<INT>();
+		lst.append(0);
+		
+		while(1)
+		{
+			while(iTmp < 8 * (sizeof(INT)))
+			{
+				if(rTmp->lst.at(0) & (1 << iTmp))
+				{
+					INT leftCnt = this->lst.getSize(), rightCnt = lTmp->lst.getSize();
+					bool carry = false;
+
+					while (leftCnt != 0 || rightCnt != 0)
+					{
+						if (leftCnt > 0 && rightCnt > 0)
+						{
+							this->lst.at(this->lst.getSize() - leftCnt) += lTmp->lst.at(lTmp->lst.getSize() - rightCnt) + (carry ? 1 : 0);
+						}
+						else if (leftCnt > 0 || rightCnt == 0)
+						{
+							if (carry)
+							{
+								this->lst.at(this->lst.getSize() - leftCnt) += 1;
+								carry = false;
+							}
+							else
+							{
+								break;
+							}
+						}
+						else if (leftCnt == 0 && rightCnt > 0)
+						{
+							this->lst.append(lTmp->lst.at(lTmp->lst.getSize() - rightCnt) + (carry ? 1 : 0));
+						}
+
+						if (isCarrySet())
+						{
+							carry = true;
+						}
+						else
+						{
+							carry = false;
+						}
+						if (leftCnt != 0)
+							leftCnt--;
+
+						if (rightCnt != 0)
+							rightCnt--;
+					}
+
+					if (carry)
+					{
+						this->lst.append(1);
+					}
+				}
+
+				if (lTmp->lst.tail->getData() & (1 << 8 * sizeof(INT) - 1))
+				{
+					lTmp->lst.append(0);
+				}
+				ptr = lTmp->lst.head;
+				buffer = buffer2 = 0;
+				while (ptr != nullptr)
+				{
+					buffer2 = buffer;
+					buffer = (ptr->getData() & (1 << 8 * sizeof(INT) - 1));
+					ptr->setData((ptr->getData() << 1) | (buffer2 ? 1 : 0));
+
+					ptr = ptr->getNext();
+				}
+
+				iTmp++;
+			}
+
+			iTmp = 0;
+			if (rTmp->lst.getSize() != 1)
+				rTmp->lst.remove(0);
+			else break;
+		}
+
+		delete rTmp;
+		delete lTmp;
 
 		if(!(isPositive(this->flags) ^ isPositive(right.flags)))
 		{
@@ -794,6 +883,20 @@ public:
 			node<INT>* ptr;
 			tmpResult = new char[MAX_POSITION];
 
+			if(this->lst.getSize() == 1 && this->lst.at(0) == 0)
+			{
+				result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 4]);
+
+				if (isNegative(this->flags))
+					result[0] = '-';
+				result[0 + (isNegative(this->flags) ? 1 : 0)] = '0';
+				result[1 + (isNegative(this->flags) ? 1 : 0)] = 'x';
+				result[2 + (isNegative(this->flags) ? 1 : 0)] = '0';
+				result[3 + (isNegative(this->flags) ? 1 : 0)] = '\0';
+
+				return result;
+			}
+			
 			INT hex = 0xf0;
 			for (INT i = 0; i < sizeof(INT) - 1; i++)
 			{
@@ -805,6 +908,21 @@ public:
 				tmpResult[cnt++] = ((tmp.lst.at(0) & 0xf) >=10 ? (tmp.lst.at(0) &0xf) + 55 : (tmp.lst.at(0) & 0x0f) + '0'); // A's ASCII code : 65
 				ptr = tmp.lst.tail;
 				buffer = buffer2 = 0;
+
+				if(ptr->getData() == 0)
+				{
+					ptr->getPrev()->setNext(nullptr);
+					delete ptr;
+					tmp.lst.size--;
+
+					node<INT>* tmpP = tmp.lst.head;
+					while(tmpP->getNext() != nullptr)
+					{
+						tmpP = tmpP->getNext();
+					}
+					tmp.lst.tail = tmpP;
+					ptr = tmpP;
+				}
 				
 				while(ptr != nullptr)
 				{
@@ -812,14 +930,11 @@ public:
 					buffer = (ptr->getData() & 0xf);
 					ptr->setData((ptr->getData() >> 4) | (buffer2 << 8 * (sizeof(INT) -1) + 4));
 
-					if(ptr->getPrev() != nullptr)
+					if (ptr->getPrev() != nullptr)
 						ptr = ptr->getPrev();
-					if(ptr == nullptr)
-					{
-						break;
-					}
+					else break;
 
-					if (ptr->getNext() != nullptr)
+					/*if (ptr->getNext() != nullptr)
 					{
 						if (ptr->getNext()->getData() == 0)
 						{
@@ -833,9 +948,12 @@ public:
 								tmpP = tmpP->getNext();
 							}
 							tmp.lst.tail = tmpP;
+						}else if(ptr->getNext()->getData() <= 0xf)
+						{
+							continue;
 						}
 					}
-					else break;
+					else break;*/
 				}
 
 				if((tmp.lst.getSize() == 1) && (tmp.lst.at(0) ==0))
