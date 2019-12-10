@@ -397,9 +397,9 @@ public:
 	{
 		this->set(num);
 	}
-	BigInteger(BigInteger& old)
+	BigInteger(const BigInteger& old)
 	{
-		this->lst = list<INT>(old.lst);
+		this->lst = list<INT>(const_cast<BigInteger *>(&old)->lst);
 		this->flags = (old.flags & ~CALCULATED);
 #if USECACHE == TRUE
 		str = nullptr;
@@ -729,21 +729,26 @@ public:
 			return *this;
 		}
 
-		INT Tmp = 1;
+		INT Tmp = 0;
 		node<INT>* ptr;
 		INT buffer, buffer2;
+		bool done = false;
 		
-		while(*this >= rTmp)
+		while(*this >= rTmp && !done)
 		{
 			this->sub(rTmp);
-
-			while(1)
-			{
+			Tmp++;
+			
 				ptr = rTmp.lst.tail;
 				buffer = buffer2 = 0;
 
 				if (ptr->getData() == 0)
 				{
+					if (ptr->getPrev() == nullptr){
+						done = true;
+						break;
+					}
+					
 					ptr->getPrev()->setNext(nullptr);
 					delete ptr;
 					rTmp.lst.size--;
@@ -766,9 +771,8 @@ public:
 						ptr = ptr->getPrev();
 					else break;
 				}
-			}
+			
 
-			Tmp++;
 		}
 
 		this->lst = list<INT>(Tmp);

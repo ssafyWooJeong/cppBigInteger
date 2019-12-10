@@ -1,10 +1,31 @@
 ﻿#include <iostream>
+#include <string>
 #include "header.h"
 #include "BigIntNerualNet.h"
+#include <fstream>
+#include <queue>
 using namespace std;
 
-void BigIntegerTest(BigInteger& left, BigInteger& right)
+//void BigIntegerTest(BigInteger& left, BigInteger& right)
+//{
+//	cout << "--------------------------------------" << endl;
+//	cout << "Hexagon value of left : " << left.get(HEXAGON) << endl;
+//	cout << "Hexagon value of right : " << right.get(HEXAGON) << endl;
+//	cout << "--------------------------------------" << endl;
+//	cout << "left + right : " << (left + right).get(HEXAGON) << endl;
+//	cout << "left - right : " << (left - right).get(HEXAGON) << endl;
+//	cout << "left * right : " << (left * right).get(HEXAGON) << endl;
+//	cout << "left / right : " << (left / right).get(HEXAGON) << endl;
+//	cout << "left % right : " << (left % right).get(HEXAGON) << endl << endl;;
+//
+//	
+//	return;
+//}
+
+void BigIntegerTest1(unsigned int op1, unsigned int op2)
 {
+	BigInteger left(op1);
+	BigInteger right(op2);
 	cout << "--------------------------------------" << endl;
 	cout << "Hexagon value of left : " << left.get(HEXAGON) << endl;
 	cout << "Hexagon value of right : " << right.get(HEXAGON) << endl;
@@ -15,15 +36,63 @@ void BigIntegerTest(BigInteger& left, BigInteger& right)
 	cout << "left / right : " << (left / right).get(HEXAGON) << endl;
 	cout << "left % right : " << (left % right).get(HEXAGON) << endl << endl;;
 
+
+	return;
+}
+
+void BigIntegerTest2(string testfile) // sigma Wi * Xi from i = 1 to n
+{
+	string tmp;
+	ifstream file(testfile.c_str());
+	queue<BigInteger> w;
+	queue<BigInteger> x;
+
+	getline(file, tmp);
+	while(tmp.find(" ") != string::npos)
+	{
+		string substr = tmp.substr(0, tmp.find(" "));
+		BigInteger obj(const_cast<char *>(substr.c_str()));
+		w.push(obj); // 만든 list를 사용할 경우(list.append()) C2679 에러가 나며 오른쪽 피연산자로 int 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다. 가 발생하는데
+					   // 원인을 모르겠어 템플릿과 관련된 오류로 간주하고, 확인을 하기 위한 부분임으로 C++ STL의 Vector를 사용하겠습니다.(로직상 list를 사용하는게 맞는데, STL list와 만든 list가 이름이 같아
+					   // ambigous 하기 때문에 vector를 사용합니다..)
+		tmp = tmp.substr(tmp.find(" ") + 1);
+	}
+	w.push(BigInteger(const_cast<char*>(tmp.c_str())));
+
+	getline(file, tmp);
+	while (tmp.find(" ") != string::npos)
+	{
+		string substr = tmp.substr(0, tmp.find(" "));
+		BigInteger obj(const_cast<char*>(substr.c_str()));
+		x.push(obj);
+		tmp = tmp.substr(tmp.find(" ") + 1);
+	}
+	x.push(BigInteger(const_cast<char*>(tmp.c_str())));
+
+	BigInteger sum((uint32_t)0);
 	
+	while( w.size() > 0)
+	{
+		BigInteger tmpObj = w.front();
+		tmpObj.multi(x.front());
+		sum.add(tmpObj);
+		w.pop();
+		x.pop();
+	}
+
+	cout << "sigma Wi * Xi from i = 1 to n : " << sum.get(DECIMAL) << endl;
+
 	return;
 }
 
 int main()
 {
-	BigInteger a(UINT32_MAX);
-	BigInteger b(UINT32_MAX);
-	BigIntegerTest(a, b);
+	BigIntegerTest1(UINT32_MAX, UINT32_MAX - 10);
+	BigIntegerTest2("Test2.txt");
+	
+	//BigInteger a(UINT32_MAX);
+	//BigInteger b(UINT32_MAX);
+	//BigIntegerTest(a, b);
 	
 	//list<int> obj;
 	//obj.append(1); obj.append(2); obj.append(3); obj.append(4);
@@ -114,17 +183,17 @@ int main()
 	//cout << "Hexagon : " << obj13.get(HEXAGON) << endl;
 	//cout << "OCTAL   : " << obj13.get(OCTAL) << endl << endl;
 
-	BigInteger* arr = new BigInteger[3];
-	arr[0] = BigInteger(1);
-	arr[1] = BigInteger(10);
-	arr[2] = BigInteger(7);
-	int size[3] = { 3, 4, 2 };
-	
-	BigIntNuralNet nn;
-	nn.InitNN(arr, size);
-	nn.InitNNTest();
-	nn.FeedForwardTest();
-	nn.ShowResult();
+	//BigInteger* arr = new BigInteger[3];
+	//arr[0] = BigInteger(1);
+	//arr[1] = BigInteger(10);
+	//arr[2] = BigInteger(7);
+	//int size[3] = { 3, 4, 2 };
+	//
+	//BigIntNuralNet nn;
+	//nn.InitNN(arr, size);
+	//nn.InitNNTest();
+	//nn.FeedForwardTest();
+	//nn.ShowResult();
 
 	
 	return 0;
