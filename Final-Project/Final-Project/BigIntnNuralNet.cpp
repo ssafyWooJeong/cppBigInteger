@@ -145,6 +145,8 @@ void BigIntNuralNet::FeedForward()
 				tmp.multi(weight[layer][j][i]);
 				ptr2[i].add(tmp);
 			}
+			if(i==0)
+			printf("a%d(%d) : %s\n", i, layer + 1, ptr2[i].get(HEXAGON).get());
 		}
 	}
 }

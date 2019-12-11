@@ -26,8 +26,8 @@ void BigIntegerTest1(unsigned int op1, unsigned int op2)
 {
 	BigInteger left(op1);
 	BigInteger right(op2);
-	//BigInteger tmp(1024);
-	//left.multi(tmp);
+	BigInteger tmp(1024);
+	left.multi(tmp);
 	cout << "--------------------------------------" << endl;
 	cout << "Hexagon value of left : " << left.get(HEXAGON) << endl;
 	cout << "Hexagon value of right : " << right.get(HEXAGON) << endl;
@@ -82,7 +82,7 @@ void BigIntegerTest2(string testfile) // sigma Wi * Xi from i = 1 to n
 		x.pop();
 	}
 
-	cout << "sigma Wi * Xi from i = 1 to n : " << sum.get(DECIMAL) << endl;
+	cout << "sigma Wi * Xi from i = 1 to n : " << sum.get(DECIMAL) << endl << endl << endl;
 
 	return;
 }
@@ -199,7 +199,7 @@ int main()
 	
 	
 	BigIntNuralNet nn;
-	nn.TestFFAlgorithm("FFTestFile2.txt");
+	nn.TestFFAlgorithm("FFTestFile.txt");
 	//nn.InitNN(arr, ptr); // int **sizes; // size[0][0] -> input, size[0][1]->layers size[0][2] -> output, size[1][n] ->hidden's node
 	//nn.InitNNTest();
 	//nn.FeedForwardTest();

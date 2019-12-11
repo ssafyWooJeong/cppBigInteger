@@ -445,9 +445,14 @@ public:
 				rightCnt--;
 		}
 
-		if(leftCnt == 0 && rightCnt == 0 && this->lst.getSize() > 1)
+		if(this->lst.getSize() != right.lst.getSize())
 		{
 			this->lst.at(this->lst.getSize() - 1) += (carry ? 1 : 0);
+			//if(isCarrySet())
+			//{
+			//	carry = true;
+			//	this->lst.at(this->lst.getSize() - 1) -= 1;
+			//}
 		}
 		
 		if(carry)
@@ -510,7 +515,7 @@ public:
 			}
 		} 
 
-		//this->lst.append(0);
+		this->lst.append(0);
 		nlst.append(tmp);
 		// avoid BigInteger's overflow
 
@@ -521,7 +526,8 @@ public:
 		{
 			if (leftCnt > 0 && rightCnt > 0)
 			{
-				this->lst.at(this->lst.getSize() - leftCnt) += nlst.at(nlst.getSize() - rightCnt) + (carry ? 1 : 0);
+				this->lst.at(this->lst.getSize() - leftCnt) += (carry ? 1 : 0);
+				this->lst.at(this->lst.getSize() - leftCnt) += nlst.at(nlst.getSize() - rightCnt);
 			}
 			else if (leftCnt > 0 || rightCnt == 0)
 			{
@@ -552,6 +558,11 @@ public:
 				leftCnt--;
 			if(rightCnt != 0)
 				rightCnt--;
+		}
+
+		if(this->lst.getSize() != nlst.getSize())
+		{
+			this->lst.at(this->lst.getSize() - 1) += (carry ? 1 : 0);
 		}
 
 		tmp = 0x80;
