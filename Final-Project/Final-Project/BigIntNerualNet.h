@@ -1,5 +1,6 @@
 #pragma once
 #include "header.h"
+#include <string>
 
 #define TRUE 1
 #define FALSE 0
@@ -10,10 +11,10 @@ class BigIntNuralNet
 {
 private:
 	BigInteger* inputs;
-	BigInteger* hiddens;
+	BigInteger** hiddens;
 	BigInteger* outputs;
-	int sizes[3];
-	BigInteger**** weight;
+	int **sizes; // size[0][0] -> input, size[0][1]->hidden layers,  size[0][2] -> output, size[1][n] ->hidden's node
+	BigInteger*** weight;
 #if USERAND == TRUE
 	void useRand();
 #else
@@ -21,10 +22,12 @@ private:
 #endif
 public:
 	BigIntNuralNet();
-	void InitNN(BigInteger*, int[3], BigInteger* bias = nullptr);
+	void InitNN(BigInteger*, int**);
 	void FeedForward();
 	void ShowResult();
 
 	void FeedForwardTest();
 	void InitNNTest();
+
+	void TestFFAlgorithm(std::string);
 };

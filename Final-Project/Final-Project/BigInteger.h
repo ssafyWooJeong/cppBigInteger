@@ -445,6 +445,11 @@ public:
 				rightCnt--;
 		}
 
+		if(leftCnt == 0 && rightCnt == 0 && this->lst.getSize() > 1)
+		{
+			this->lst.at(this->lst.getSize() - 1) += (carry ? 1 : 0);
+		}
+		
 		if(carry)
 		{
 			this->lst.append(1);
@@ -485,23 +490,27 @@ public:
 		{
 			tmp = tmp | (tmp << 8);
 		}
-		
+
+		INT tmpSIZE = this->lst.getSize();
+		INT tmpSIZE2 = nlst.getSize();
 		
 		if(this->lst.getSize() > nlst.getSize())
 		{
-			for(INT i = 0; i < this->lst.getSize() - nlst.getSize(); i++)
+			for(INT i = 0; i < tmpSIZE - tmpSIZE2; i++)
 			{
-				this->lst.append(0);
-			}
-		}else if(this->lst.getSize() < nlst.getSize())
-		{
-			for(INT i = 0; i < nlst.getSize() - this->lst.getSize(); i++)
-			{
+				//this->lst.append(0);
 				nlst.append(tmp);
 			}
-		}
+		}else if(this->lst.getSize() < tmpSIZE2)
+		{
+			for(INT i = 0; i < tmpSIZE2 - tmpSIZE; i++)
+			{
+				//nlst.append(tmp);
+				this->lst.append(0);
+			}
+		} 
 
-		this->lst.append(0);
+		//this->lst.append(0);
 		nlst.append(tmp);
 		// avoid BigInteger's overflow
 
@@ -625,6 +634,8 @@ public:
 			{
 				if(rTmp->lst.at(0) & (1 << iTmp))
 				{
+					this->add(*lTmp);
+					/*
 					INT leftCnt = this->lst.getSize(), rightCnt = lTmp->lst.getSize();
 					bool carry = false;
 
@@ -669,7 +680,7 @@ public:
 					if (carry)
 					{
 						this->lst.append(1);
-					}
+					}*/
 				}
 
 				if (lTmp->lst.tail->getData() & (1 << 8 * sizeof(INT) - 1))
@@ -717,83 +728,30 @@ public:
 	}
 	BigInteger& div(BigInteger& right)
 	{
-		//BigInteger lTmp(*this);
+		BigInteger lTmp(*this);
 		BigInteger rTmp(right);
-		//BigInteger iTmp((INT)0);
-		//BigInteger one(1);
-
+		BigInteger iTmp((INT)0);
+		BigInteger one(1);
 		if (rTmp.lst.getSize() == 1 && rTmp.lst.at(0) == 0) // when right is 0 -> dived by zero, add exception handling when need
 		{
 			this->lst = list<INT>();
 			this->flags |= ERROR;
 			return *this;
 		}
-
-		INT Tmp = 0;
-		node<INT>* ptr;
-		INT buffer, buffer2;
-		bool done = false;
-		
-		while(*this >= rTmp && !done)
+		while (*this >= right)
 		{
-			this->sub(rTmp);
-			Tmp++;
-			
-				ptr = rTmp.lst.tail;
-				buffer = buffer2 = 0;
+			if (this->lst.getSize() == 1 && right.lst.getSize() == 1)
+			{
+				BigInteger tmp(this->lst.at(0) / right.lst.at(0));
+				iTmp.add(tmp);
+				break;
+			}
 
-				if (ptr->getData() == 0)
-				{
-					if (ptr->getPrev() == nullptr){
-						done = true;
-						break;
-					}
-					
-					ptr->getPrev()->setNext(nullptr);
-					delete ptr;
-					rTmp.lst.size--;
-
-					node<INT>* tmpP = rTmp.lst.head;
-					while (tmpP->getNext() != nullptr)
-					{
-						tmpP = tmpP->getNext();
-					}
-					rTmp.lst.tail = tmpP;
-					ptr = tmpP;
-				}
-
-				while (ptr != nullptr)
-				{
-					buffer2 = buffer;
-					buffer = (ptr->getData() & 1);
-					ptr->setData((ptr->getData() >> 1) | (buffer2 << 8 * sizeof(INT) - 1));
-					if (ptr->getPrev() != nullptr)
-						ptr = ptr->getPrev();
-					else break;
-				}
-			
-
+			iTmp.add(one);
+			this->sub(right);
 		}
-
-		this->lst = list<INT>(Tmp);
-			
-		
-		//while (*this >= right)
-		//{
-		//	if(this->lst.getSize() == 1 && right.lst.getSize() == 1)
-		//	{
-		//		BigInteger tmp(this->lst.at(0) / right.lst.at(0));
-		//		iTmp.add(tmp);
-		//		break;
-		//	}
-		//	
-		//	iTmp.add(one);
-		//	this->sub(right);
-		//}
-
-		//this->lst = iTmp.lst;
+		this->lst = iTmp.lst;
 		this->flags |= ~CALCULATED;
-
 		if (!(isPositive(this->flags) ^ isPositive(right.flags)))
 		{
 			this->flags |= POSITIVE;
@@ -973,7 +931,8 @@ public:
 
 				if(ptr->getData() == 0)
 				{
-					ptr->getPrev()->setNext(nullptr);
+					if(ptr->getPrev() != nullptr)
+						ptr->getPrev()->setNext(nullptr);
 					delete ptr;
 					tmp.lst.size--;
 
@@ -1047,7 +1006,7 @@ public:
 
 			if (this->lst.getSize() == 1 && this->lst.at(0) == 0)
 			{
-				result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 4]);
+				result = std::shared_ptr<char[]>(new char[4]);
 
 				if (isNegative(this->flags))
 					result[0] = '-';

@@ -26,6 +26,8 @@ void BigIntegerTest1(unsigned int op1, unsigned int op2)
 {
 	BigInteger left(op1);
 	BigInteger right(op2);
+	//BigInteger tmp(1024);
+	//left.multi(tmp);
 	cout << "--------------------------------------" << endl;
 	cout << "Hexagon value of left : " << left.get(HEXAGON) << endl;
 	cout << "Hexagon value of right : " << right.get(HEXAGON) << endl;
@@ -183,17 +185,26 @@ int main()
 	//cout << "Hexagon : " << obj13.get(HEXAGON) << endl;
 	//cout << "OCTAL   : " << obj13.get(OCTAL) << endl << endl;
 
-	//BigInteger* arr = new BigInteger[3];
-	//arr[0] = BigInteger(1);
-	//arr[1] = BigInteger(10);
-	//arr[2] = BigInteger(7);
-	//int size[3] = { 3, 4, 2 };
-	//
-	//BigIntNuralNet nn;
-	//nn.InitNN(arr, size);
+	BigInteger* arr = new BigInteger[3];
+	arr[0] = BigInteger(1);
+	arr[1] = BigInteger(10);
+	arr[2] = BigInteger(7);
+	int* ptr[2];
+	ptr[0] = new int[3];
+	ptr[0][0] = 3;
+	ptr[0][1] = 1;
+	ptr[0][2] = 2;
+	ptr[1] = new int;
+	ptr[1][0] = 5;
+	
+	
+	BigIntNuralNet nn;
+	nn.TestFFAlgorithm("FFTestFile2.txt");
+	//nn.InitNN(arr, ptr); // int **sizes; // size[0][0] -> input, size[0][1]->layers size[0][2] -> output, size[1][n] ->hidden's node
 	//nn.InitNNTest();
 	//nn.FeedForwardTest();
-	//nn.ShowResult();
+	nn.FeedForward();
+	nn.ShowResult();
 
 	
 	return 0;

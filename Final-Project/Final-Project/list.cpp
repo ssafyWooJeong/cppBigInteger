@@ -67,7 +67,7 @@ T& list<T>::at(unsigned int index)
 
 	while(iter < index)
 	{
-		ptr = this->head->getNext();
+		ptr = ptr->getNext();
 		iter++;
 	}
 
