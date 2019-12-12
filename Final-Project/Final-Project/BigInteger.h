@@ -121,11 +121,17 @@ public:
 				return false;
 			}else // same list size
 			{
-				if (const_cast<BigInteger&>(left).lst.at(left.lst.size - 1) < const_cast<BigInteger&>(right).lst.at(left.lst.size - 1))
+				for (INT i = left.lst.size; i != 0; i--)
 				{
-					return true;
+					if (const_cast<BigInteger&>(left).lst.at(i - 1) > const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return false;
+					}else if(const_cast<BigInteger&>(left).lst.at(i - 1) > const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return true;
+					}
 				}
-				else return false;
+				return false;
 			}
 		}else if(isNegative(left.flags) && isPositive(right.flags))
 		{
@@ -145,11 +151,17 @@ public:
 			}
 			else // same list size
 			{
-				if (const_cast<BigInteger&>(left).lst.at(left.lst.size - 1) >= const_cast<BigInteger&>(right).lst.at(left.lst.size - 1))
+				for (INT i = left.lst.size; i != 0; i--)
 				{
-					return true;
+					if (const_cast<BigInteger&>(left).lst.at(i - 1) > const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return true;
+					}else if(const_cast<BigInteger&>(left).lst.at(i - 1) < const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return false;
+					}
 				}
-				else return false;
+				return false;
 			}
 		}
 	}
@@ -167,11 +179,17 @@ public:
 			}
 			else // same list size
 			{
-				if (const_cast<BigInteger&>(left).lst.at(left.lst.size - 1) >= const_cast<BigInteger&>(right).lst.at(left.lst.size - 1))
+				for(INT i = left.lst.size; i != 0; i--)
 				{
-					return true;
+					if (const_cast<BigInteger&>(left).lst.at(i - 1) > const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return true;
+					}else if(const_cast<BigInteger&>(left).lst.at(i - 1) < const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return false;
+					}
 				}
-				else return false;
+				return true;
 			}
 		}
 		else if (isNegative(left.flags) && isPositive(right.flags))
@@ -194,11 +212,17 @@ public:
 			}
 			else // same list size
 			{
-				if (const_cast<BigInteger&>(left).lst.at(left.lst.size - 1) <= const_cast<BigInteger&>(right).lst.at(left.lst.size - 1))
+				for (INT i = left.lst.size; i != 0; i--)
 				{
-					return true;
+					if (const_cast<BigInteger&>(left).lst.at(i - 1) > const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return false;
+					}else if(const_cast<BigInteger&>(left).lst.at(i - 1) < const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return true;
+					}
 				}
-				else return false;
+				return true;
 			}
 		}
 	}
@@ -216,11 +240,17 @@ public:
 			}
 			else // same list size
 			{
-				if (const_cast<BigInteger&>(left).lst.at(left.lst.size - 1) > const_cast<BigInteger&>(right).lst.at(left.lst.size - 1))
+				for (INT i = left.lst.size; i != 0; i--)
 				{
-					return true;
+					if (const_cast<BigInteger&>(left).lst.at(i - 1) < const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return false;
+					}else if(const_cast<BigInteger&>(left).lst.at(i - 1) > const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return true;
+					}
 				}
-				else return false;
+				return false;
 			}
 		}
 		else if (isNegative(left.flags) && isPositive(right.flags))
@@ -241,13 +271,19 @@ public:
 			{
 				return false;
 			}
-			else // same list size
+			else // same list size >
 			{
-				if (const_cast<BigInteger&>(left).lst.at(left.lst.size - 1) < const_cast<BigInteger&>(right).lst.at(left.lst.size - 1))
+				for (INT i = left.lst.size; i != 0; i--)
 				{
-					return true;
+					if (const_cast<BigInteger&>(left).lst.at(i - 1) > const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return false;
+					}else if(const_cast<BigInteger&>(left).lst.at(i - 1) < const_cast<BigInteger&>(right).lst.at(i - 1))
+					{
+						return true;
+					}
 				}
-				else return false;
+				return false;
 			}
 		}
 	}
@@ -327,7 +363,7 @@ public:
 					{
 						buffer2 = buffer;
 						buffer = (ptr->getData() & (0xf << 8 * (sizeof(INT) - 1) + 4));
-						ptr->setData((ptr->getData() << 4) | buffer2);
+						ptr->setData((ptr->getData() << 4) | buffer2 >> 8 * (sizeof(INT) - 1) + 4);
 
 						ptr = ptr->getNext();
 					}
@@ -357,7 +393,7 @@ public:
 					{
 						buffer2 = buffer;
 						buffer = (ptr->getData() & (07 << 8 * (sizeof(INT) - 1) + 5));
-						ptr->setData((ptr->getData() << 3) | buffer2);
+						ptr->setData((ptr->getData() << 3) | buffer2 >> 8 * (sizeof(INT) - 1) + 5);
 
 						ptr = ptr->getNext();
 					}
@@ -487,7 +523,31 @@ public:
 			{
 				nlst.at(i) = ~nlst.at(i);
 			}
-			nlst.at(0) += 1;
+			
+			if(nlst.size == 1)
+			{
+				nlst.at(0) += 1;
+			}else
+			{
+				INT iter = 0;
+
+				while(iter < nlst.size)
+				{
+					nlst.at(iter++) += 1;
+
+					if (!(isCarrySet()))
+						break;
+				}
+				
+				//node<INT>* ptr = nlst.head;
+				//while(ptr != nullptr)
+				//{
+				//	ptr->setData(ptr->getData() + 1);
+				//	if (!(isCarrySet()))
+				//		break;
+				//	ptr = ptr->getNext();
+				//}
+			}
 		} // make 2's complement
 
 		INT tmp = 255;
@@ -579,7 +639,23 @@ public:
 			{
 				this->lst.at(i) = ~this->lst.at(i);
 			}
-			this->lst.at(0) += 1;
+			
+			if (nlst.size == 1)
+			{
+				nlst.at(0) += 1;
+			}
+			else
+			{
+				INT iter = 0;
+
+				while (iter < nlst.size)
+				{
+					nlst.at(iter++) += 1;
+
+					if (!(isCarrySet()))
+						break;
+				}
+			}
 			// convert 2's complement to ordinal number
 		}else
 		{
@@ -767,7 +843,14 @@ public:
 		while (!(rTmp.lst.tail->getData() & (1 << iTmp))) iTmp--;
 		rBits += iTmp;
 
-		iTmp = (lBits - rBits) + 1;
+		if(lBits >= rBits && *this >= right)
+			iTmp = (lBits - rBits) + 1;
+		else
+		{
+			this->lst = list<INT>();
+			this->lst.append(0);
+			return *this;
+		}
 		
 		while(*this >= rTmp)
 		{
@@ -846,7 +929,7 @@ public:
 
 		
 		
-		while(iTmp-- != 0)
+		while(iTmp-- != 0 && rTmp >= right)
 		{
 			if (quotient.lst.tail->getData() & (1 << 8 * sizeof(INT) - 1))
 			{
@@ -862,12 +945,6 @@ public:
 
 				ptr = ptr->getNext();
 			}
-			
-			if(*this >= rTmp)
-			{
-				this->sub(rTmp);
-				quotient.lst.at(0) |= 1;
-			}
 
 			ptr = rTmp.lst.tail;
 			buffer = buffer2 = 0;
@@ -876,8 +953,11 @@ public:
 			{
 				if (ptr->getPrev() != nullptr)
 					ptr->getPrev()->setNext(nullptr);
-				delete ptr;
-				rTmp.lst.size--;
+
+				if (rTmp.lst.getSize() > 1) {
+					delete ptr;
+					rTmp.lst.size--;
+				}
 
 				node<INT>* tmpP = rTmp.lst.head;
 				while (tmpP->getNext() != nullptr)
@@ -886,6 +966,12 @@ public:
 				}
 				rTmp.lst.tail = tmpP;
 				ptr = tmpP;
+			}
+			
+			if(*this >= rTmp)
+			{
+				this->sub(rTmp);
+				quotient.lst.at(0) |= 1;
 			}
 			
 			while (ptr != nullptr)
@@ -1140,7 +1226,37 @@ public:
 			while (!(rTmp.lst.tail->getData() & (1 << iTmp))) iTmp--;
 			rBits += iTmp;
 
-			iTmp = (lBits - rBits) + 1;
+			if(lBits > rBits)
+				iTmp = (lBits - rBits) + 1;
+			else if(lBits == rBits && *this == right)
+			{
+#if USECACHE == TRUE
+				flags = flags & ~CALCULATED;
+				if (this->str != nullptr)
+					delete str;
+				this->str = nullptr;
+#endif
+				this->lst = list<INT>();
+				lst.append(0);
+				return *this;
+			}
+			else if(lBits == rBits && *this > rTmp)
+			{
+				this->sub(rTmp);
+
+				return *this;
+			}
+			else
+			{
+#if USECACHE == TRUE
+				flags = flags & ~CALCULATED;
+				if (this->str != nullptr)
+					delete str;
+				this->str = nullptr;
+#endif
+				
+				return *this;
+			}
 
 			while (*this >= rTmp)
 			{
@@ -1182,8 +1298,10 @@ public:
 			{
 				if (ptr->getPrev() != nullptr)
 					ptr->getPrev()->setNext(nullptr);
-				delete ptr;
-				rTmp.lst.size--;
+				if(rTmp.lst.getSize() > 1){
+					delete ptr;
+					rTmp.lst.size--;
+				}
 
 				node<INT>* tmpP = rTmp.lst.head;
 				while (tmpP->getNext() != nullptr)
@@ -1194,39 +1312,34 @@ public:
 				ptr = tmpP;
 			}
 
-			BigInteger quotient((uint32_t)0);
 
-			while (iTmp-- != 0)
+
+			while (iTmp-- != 0 && rTmp >= right)
 			{
-				if (quotient.lst.tail->getData() & (1 << 8 * sizeof(INT) - 1))
+				ptr = rTmp.lst.head;
+				rTmp.lst.size = 0;
+				while(ptr != nullptr)
 				{
-					quotient.lst.append(0);
-				}
-				ptr = quotient.lst.head;
-				buffer = buffer2 = 0;
-				while (ptr != nullptr)
-				{
-					buffer2 = buffer;
-					buffer = (ptr->getData() & (1 << 8 * sizeof(INT) - 1));
-					ptr->setData((ptr->getData() << 1) | (buffer2 ? 1 : 0));
-
+					rTmp.lst.size++;
 					ptr = ptr->getNext();
 				}
 
-				if (*this >= rTmp)
+				ptr = this->lst.head;
+				this->lst.size = 0;
+				while (ptr != nullptr)
 				{
-					this->sub(rTmp);
-					quotient.lst.at(0) |= 1;
+					this->lst.size++;
+					ptr = ptr->getNext();
 				}
-
+				
 				ptr = rTmp.lst.tail;
-				buffer = buffer2 = 0;
 
 				if (ptr->getData() == 0)
 				{
 					if (ptr->getPrev() != nullptr)
 						ptr->getPrev()->setNext(nullptr);
-					delete ptr;
+					if (rTmp.lst.getSize() > 1)
+						delete ptr;
 					rTmp.lst.size--;
 
 					node<INT>* tmpP = rTmp.lst.head;
@@ -1237,7 +1350,13 @@ public:
 					rTmp.lst.tail = tmpP;
 					ptr = tmpP;
 				}
+				while (*this >= rTmp)
+				{
+					this->sub(rTmp);
+				}
 
+				ptr = rTmp.lst.tail;
+				buffer = buffer2 = 0;
 				while (ptr != nullptr)
 				{
 					buffer2 = buffer;
@@ -1312,6 +1431,7 @@ public:
 			tmp.flags |= POSITIVE;
 			BigInteger zero((INT)0);
 			BigInteger ten((INT)10);
+			char str[] = "10";
 
 			if (this->lst.getSize() == 1 && this->lst.at(0) == 0)
 			{
@@ -1329,8 +1449,10 @@ public:
 			while(tmp > zero)
 			{
 				BigInteger tmp2(tmp);
+				ten.set(str);
 				tmp2.mod(ten);
 				tmpResult[cnt++] = tmp2.lst.at(0) + '0';
+				ten.set(str);
 				tmp.div(ten);
 			}
 			tmpResult[cnt] = '\0';

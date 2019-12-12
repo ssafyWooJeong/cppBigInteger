@@ -29,14 +29,18 @@ void BigIntegerTest1(unsigned int op1, unsigned int op2)
 	BigInteger tmp(1024);
 	left.multi(tmp);
 	cout << "--------------------------------------" << endl;
+	cout << "Decimal value of left : " << left.get(DECIMAL) << endl;
+	cout << "Decimal value of right : " << right.get(DECIMAL) << endl;
 	cout << "Hexagon value of left : " << left.get(HEXAGON) << endl;
 	cout << "Hexagon value of right : " << right.get(HEXAGON) << endl;
+	cout << "Octal value of left : " << left.get(OCTAL) << endl;
+	cout << "Octal value of right : " << right.get(OCTAL) << endl;
 	cout << "--------------------------------------" << endl;
-	cout << "left + right : " << (left + right).get(HEXAGON) << endl;
-	cout << "left - right : " << (left - right).get(HEXAGON) << endl;
-	cout << "left * right : " << (left * right).get(HEXAGON) << endl;
-	cout << "left / right : " << (left / right).get(HEXAGON) << endl;
-	cout << "left % right : " << (left % right).get(HEXAGON) << endl << endl;;
+	cout << "left + right : " << (left + right).get(DECIMAL) << "(" << (left + right).get(HEXAGON) << ", " << (left + right).get(OCTAL) << ")" << endl;
+	cout << "left - right : " << (left - right).get(DECIMAL) << "(" << (left - right).get(HEXAGON) << ", " << (left - right).get(OCTAL) << ")" << endl;
+	cout << "left * right : " << (left * right).get(DECIMAL) << "(" << (left * right).get(HEXAGON) << ", " << (left * right).get(OCTAL) << ")" << endl;
+	cout << "left / right : " << (left / right).get(DECIMAL) << "(" << (left / right).get(HEXAGON) << ", " << (left / right).get(OCTAL) << ")" << endl;
+	cout << "left % right : " << (left % right).get(DECIMAL) << "(" << (left % right).get(HEXAGON) << ", " << (left % right).get(OCTAL) << ")" << endl << endl;;
 
 
 	return;
@@ -72,14 +76,19 @@ void BigIntegerTest2(string testfile) // sigma Wi * Xi from i = 1 to n
 	x.push(BigInteger(const_cast<char*>(tmp.c_str())));
 
 	BigInteger sum((uint32_t)0);
+
+	int i = 1;
 	
 	while( w.size() > 0)
 	{
+		printf("w%d : %s\t\tx%d : %s\n", i, w.front().get(DECIMAL).get(), i, x.front().get(DECIMAL).get());
+		
 		BigInteger tmpObj = w.front();
 		tmpObj.multi(x.front());
 		sum.add(tmpObj);
 		w.pop();
 		x.pop();
+		i++;
 	}
 
 	cout << "sigma Wi * Xi from i = 1 to n : " << sum.get(DECIMAL) << endl << endl << endl;
@@ -89,8 +98,14 @@ void BigIntegerTest2(string testfile) // sigma Wi * Xi from i = 1 to n
 
 int main()
 {
+	//char str[] = "0x28000000000";
+	//char str2[] = "0x400FFFFFBF5";
+	//BigInteger a(str2);
+	//BigInteger b(str);
+	//a.sub(b);
+	
 	BigIntegerTest1(UINT32_MAX, UINT32_MAX - 10);
-	//BigIntegerTest2("Test2.txt");
+	BigIntegerTest2("Test2.txt");
 	
 	//BigInteger a(UINT32_MAX);
 	//BigInteger b(UINT32_MAX);
