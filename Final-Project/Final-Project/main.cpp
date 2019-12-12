@@ -218,7 +218,7 @@ int main()
 	BigIntNuralNet nn;
 	nn.TestFFAlgorithm("FFTestFile.txt");
 	//nn.InitNN(arr, ptr); // int **sizes; // size[0][0] -> input, size[0][1]->layers size[0][2] -> output, size[1][n] ->hidden's node
-	//nn.InitNNTest();
+	nn.InitNNTest();
 	//nn.FeedForwardTest();
 	nn.FeedForward();
 	nn.ShowResult();

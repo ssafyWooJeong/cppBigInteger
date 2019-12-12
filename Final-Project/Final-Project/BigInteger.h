@@ -7,11 +7,12 @@
 #include <cstring>
 #include <memory>
 
-#define TARGET AMD64
-#define USECACHE FALSE
 
 #define TRUE 1
 #define FALSE 0
+
+#define TARGET AMD64
+#define USECACHE FALSE
 
 #if TARGET == x86
 #define INT uint32_t // change the primitive data type depend on target machine, but when you use less than uint32_t eflag's carry bit unavailable
@@ -1407,7 +1408,7 @@ public:
 		{
 			if(this->flags & mode)// saved string match user's want or calculated, return this by shared pointer
 			{		
-				std::shared_ptr<char[]> nptr(new char[strlen(this->str) + 1]);
+				std::shared_ptr<char> nptr(new char[strlen(this->str) + 1], ArrayDeleter<char>());
 				for (int i = 0; i < strlen(this->str); i++)
 				{
 					nptr[i] = this->str[i];
@@ -1435,7 +1436,7 @@ public:
 
 			if (this->lst.getSize() == 1 && this->lst.at(0) == 0)
 			{
-				result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 3]);
+				result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 3], ArrayDeleter<char>());
 
 				if (isNegative(this->flags))
 					result[0] = '-';
@@ -1478,7 +1479,7 @@ public:
 
 			if(this->lst.getSize() == 1 && this->lst.at(0) == 0)
 			{
-				result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 5]);
+				result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 5], ArrayDeleter<char>());
 
 				if (isNegative(this->flags))
 					result[0] = '-';
@@ -1556,7 +1557,7 @@ public:
 				}
 			}
 			tmpResult[cnt] = '\0';
-			result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 4]);
+			result = std::shared_ptr<char[]>(new char[strlen(tmpResult) + 4], ArrayDeleter<char>());
 
 			if (isNegative(this->flags))
 				result[0] = '-';
@@ -1579,7 +1580,7 @@ public:
 
 			if (this->lst.getSize() == 1 && this->lst.at(0) == 0)
 			{
-				result = std::shared_ptr<char[]>(new char[4]);
+				result = std::shared_ptr<char[]>(new char[4], ArrayDeleter<char>());
 
 				if (isNegative(this->flags))
 					result[0] = '-';

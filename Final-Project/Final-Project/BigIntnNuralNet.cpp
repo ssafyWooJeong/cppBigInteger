@@ -249,7 +249,12 @@ void BigIntNuralNet::InitNNTest()
 		{
 			for (int j = 0; j < size[1]; j++)
 			{
+				//shared_ptr<char[]> ptr = weight[layer][i][j].get(HEXAGON);
+				//printf("w%d,%d(%d) : %s\n", i, j, layer + 1, ptr.get());
+
+				if(i == 0 && j == 0)
 				printf("w%d,%d(%d) : %s\n", i, j, layer + 1, weight[layer][i][j].get(HEXAGON).get());
+
 			}
 		}
 	}
