@@ -737,32 +737,301 @@ public:
 		this->flags &= ~ERROR;
 		return *this;
 	}
+	
 	BigInteger& div(BigInteger& right)
 	{
-		BigInteger lTmp(*this);
+		//BigInteger lTmp(*this);
 		BigInteger rTmp(right);
-		BigInteger iTmp((INT)0);
-		BigInteger one(1);
+		//BigInteger iTmp((INT)0);
+		//BigInteger one(1);
+
 		if (rTmp.lst.getSize() == 1 && rTmp.lst.at(0) == 0) // when right is 0 -> dived by zero, add exception handling when need
 		{
 			this->lst = list<INT>();
 			this->flags |= ERROR;
 			return *this;
 		}
-		while (*this >= right)
+
+		node<INT>* ptr;
+		INT buffer, buffer2;
+
+		INT lBits, rBits, iTmp;
+		lBits = 8 * (this->lst.getSize() - 1) * sizeof(INT);
+		rBits = 8 * (rTmp.lst.getSize() - 1) * sizeof(INT);
+
+		iTmp = 8 * sizeof(INT) - 1;
+		while (!(this->lst.tail->getData() & (1 << iTmp))) iTmp--;
+		lBits += iTmp;
+
+		iTmp = 8 * sizeof(INT) - 1;
+		while (!(rTmp.lst.tail->getData() & (1 << iTmp))) iTmp--;
+		rBits += iTmp;
+
+		iTmp = (lBits - rBits) + 1;
+		
+		while(*this >= rTmp)
 		{
-			if (this->lst.getSize() == 1 && right.lst.getSize() == 1)
+			if (rTmp.lst.tail->getData() & (1 << 8 * sizeof(INT) - 1))
 			{
-				BigInteger tmp(this->lst.at(0) / right.lst.at(0));
-				iTmp.add(tmp);
-				break;
+				rTmp.lst.append(0);
+			}
+			ptr = rTmp.lst.head;
+			buffer = buffer2 = 0;
+			while (ptr != nullptr)
+			{
+				buffer2 = buffer;
+				buffer = (ptr->getData() & (1 << 8 * sizeof(INT) - 1));
+				ptr->setData((ptr->getData() << 1) | (buffer2 ? 1 : 0));
+
+				ptr = ptr->getNext();
+			}
+		}
+
+		ptr = rTmp.lst.tail;
+		buffer = buffer2 = 0;
+
+		while (ptr != nullptr)
+		{
+			buffer2 = buffer;
+			buffer = (ptr->getData() & 0x1);
+			ptr->setData((ptr->getData() >> 1) | (buffer2 << 8 * sizeof(INT) - 1));
+
+			if (ptr->getPrev() != nullptr)
+				ptr = ptr->getPrev();
+			else break;
+
+			/*if (ptr->getNext() != nullptr)
+			{
+				if (ptr->getNext()->getData() == 0)
+				{
+					delete ptr->getNext();
+					ptr->setNext(nullptr);
+					tmp.lst.size--;
+
+					node<INT>* tmpP = tmp.lst.head;
+					while(tmpP->getNext() != nullptr)
+					{
+						tmpP = tmpP->getNext();
+					}
+					tmp.lst.tail = tmpP;
+				}else if(ptr->getNext()->getData() <= 0xf)
+				{
+					continue;
+				}
+			}
+			else break;*/
+		}
+
+		ptr = rTmp.lst.tail;
+		buffer = buffer2 = 0;
+
+		if (ptr->getData() == 0)
+		{
+			if (ptr->getPrev() != nullptr)
+				ptr->getPrev()->setNext(nullptr);
+			delete ptr;
+			rTmp.lst.size--;
+
+			node<INT>* tmpP = rTmp.lst.head;
+			while (tmpP->getNext() != nullptr)
+			{
+				tmpP = tmpP->getNext();
+			}
+			rTmp.lst.tail = tmpP;
+			ptr = tmpP;
+		}
+
+		BigInteger quotient((uint32_t)0);
+
+
+		
+		
+		while(iTmp-- != 0)
+		{
+			if (quotient.lst.tail->getData() & (1 << 8 * sizeof(INT) - 1))
+			{
+				quotient.lst.append(0);
+			}
+			ptr = quotient.lst.head;
+			buffer = buffer2 = 0;
+			while (ptr != nullptr)
+			{
+				buffer2 = buffer;
+				buffer = (ptr->getData() & (1 << 8 * sizeof(INT) - 1));
+				ptr->setData((ptr->getData() << 1) | (buffer2 ? 1 : 0));
+
+				ptr = ptr->getNext();
+			}
+			
+			if(*this >= rTmp)
+			{
+				this->sub(rTmp);
+				quotient.lst.at(0) |= 1;
 			}
 
-			iTmp.add(one);
-			this->sub(right);
+			ptr = rTmp.lst.tail;
+			buffer = buffer2 = 0;
+
+			if (ptr->getData() == 0)
+			{
+				if (ptr->getPrev() != nullptr)
+					ptr->getPrev()->setNext(nullptr);
+				delete ptr;
+				rTmp.lst.size--;
+
+				node<INT>* tmpP = rTmp.lst.head;
+				while (tmpP->getNext() != nullptr)
+				{
+					tmpP = tmpP->getNext();
+				}
+				rTmp.lst.tail = tmpP;
+				ptr = tmpP;
+			}
+			
+			while (ptr != nullptr)
+			{
+				buffer2 = buffer;
+				buffer = (ptr->getData() & 0x1);
+				ptr->setData((ptr->getData() >> 1) | (buffer2 << 8 * sizeof(INT) - 1));
+
+				if (ptr->getPrev() != nullptr)
+					ptr = ptr->getPrev();
+				else break;
+			}
 		}
-		this->lst = iTmp.lst;
+
+		this->lst = quotient.lst;
+
+		//INT Tmp = 0;
+		//node<INT>* ptr;
+		//node<INT>* ptr2;
+		//INT buffer, buffer2;
+		//bool done = false;
+		//bool flag = false;
+		//BigInteger tmpObj((uint32_t)0);
+		//BigInteger tmpObj2(1);
+		//BigInteger two(2);
+		//
+		//while (*this >= rTmp && !done)
+		//{
+		//	//this->sub(rTmp);
+
+		//	flag = true;
+		//	
+		//	if(Tmp != 0)
+		//		tmpObj2.multi(two);
+
+		//	ptr = rTmp.lst.tail;
+		//	ptr2 = this->lst.tail;
+		//	
+		//	while(ptr != nullptr)
+		//	{
+		//		if(ptr->getData() == ptr2->getData())
+		//		{
+		//			ptr = ptr->getPrev();
+		//			ptr2 = ptr2->getPrev();
+		//		}else
+		//		{
+		//			flag = false;
+		//			break;
+		//		}
+		//	}
+
+		//	if(flag)
+		//	{
+		//		//ptr = rTmp.lst.tail;
+		//		//ptr2 = this->lst.tail;
+		//		//
+		//		//while (ptr != nullptr)
+		//		//{
+		//		//	ptr2->setData(ptr2->getData() & ~ptr->getData());
+		//		//	
+		//		//	ptr = ptr->getPrev();
+		//		//	ptr2 = ptr2->getPrev();
+		//		//
+		//		//}
+		//		
+		//		tmpObj.add(tmpObj2);
+		//		this->sub(rTmp);
+		//	}
+		//		
+		//	
+		//	Tmp++;
+		//	//BigInteger tmpObj2(Tmp);
+		//	//tmpObj.multi(tmpObj2);
+
+		//	ptr = rTmp.lst.tail;
+		//	buffer = buffer2 = 0;
+
+		//	if (ptr->getData() == 0)
+		//	{
+		//		if (ptr->getPrev() == nullptr) {
+		//			done = true;
+		//			break;
+		//		}
+
+		//		ptr->getPrev()->setNext(nullptr);
+		//		delete ptr;
+		//		rTmp.lst.size--;
+
+		//		node<INT>* tmpP = rTmp.lst.head;
+		//		while (tmpP->getNext() != nullptr)
+		//		{
+		//			tmpP = tmpP->getNext();
+		//		}
+		//		rTmp.lst.tail = tmpP;
+		//		ptr = tmpP;
+		//	}
+
+		//	rTmp.multi(right);
+		//	
+		//	//if (rTmp.lst.tail->getData() & (1 << 8 * sizeof(INT) - 1))
+		//	//{
+		//	//	rTmp.lst.append(0);
+		//	//}
+		//	//ptr = rTmp.lst.head;
+		//	//buffer = buffer2 = 0;
+		//	//while (ptr != nullptr)
+		//	//{
+		//	//	buffer2 = buffer;
+		//	//	buffer = (ptr->getData() & (1 << 8 * sizeof(INT) - 1));
+		//	//	ptr->setData((ptr->getData() << 1) | (buffer2 ? 1 : 0));
+
+		//	//	ptr = ptr->getNext();
+		//	//}
+		//	
+		//	//while (ptr != nullptr)
+		//	//{
+		//	//	buffer2 = buffer;
+		//	//	buffer = (ptr->getData() & 1);
+		//	//	ptr->setData((ptr->getData() >> 1) | (buffer2 << 8 * sizeof(INT) - 1));
+		//	//	if (ptr->getPrev() != nullptr)
+		//	//		ptr = ptr->getPrev();
+		//	//	else break;
+		//	//}
+
+
+		//}
+
+		//this->lst = tmpObj.lst;
+
+
+		//while (*this >= right)
+		//{
+		//	if(this->lst.getSize() == 1 && right.lst.getSize() == 1)
+		//	{
+		//		BigInteger tmp(this->lst.at(0) / right.lst.at(0));
+		//		iTmp.add(tmp);
+		//		break;
+		//	}
+		//	
+		//	iTmp.add(one);
+		//	this->sub(right);
+		//}
+
+		//this->lst = iTmp.lst;
 		this->flags |= ~CALCULATED;
+
 		if (!(isPositive(this->flags) ^ isPositive(right.flags)))
 		{
 			this->flags |= POSITIVE;
@@ -780,9 +1049,54 @@ public:
 		this->flags &= ~ERROR;
 		return *this;
 	}
+	
+//	BigInteger& div(BigInteger& right)
+//	{
+//		BigInteger lTmp(*this);
+//		BigInteger rTmp(right);
+//		BigInteger iTmp((INT)0);
+//		BigInteger one(1);
+//		if (rTmp.lst.getSize() == 1 && rTmp.lst.at(0) == 0) // when right is 0 -> dived by zero, add exception handling when need
+//		{
+//			this->lst = list<INT>();
+//			this->flags |= ERROR;
+//			return *this;
+//		}
+//		while (*this >= right)
+//		{
+//			if (this->lst.getSize() == 1 && right.lst.getSize() == 1)
+//			{
+//				BigInteger tmp(this->lst.at(0) / right.lst.at(0));
+//				iTmp.add(tmp);
+//				break;
+//			}
+//
+//			iTmp.add(one);
+//			this->sub(right);
+//		}
+//		this->lst = iTmp.lst;
+//		this->flags |= ~CALCULATED;
+//		if (!(isPositive(this->flags) ^ isPositive(right.flags)))
+//		{
+//			this->flags |= POSITIVE;
+//		}
+//		else
+//		{
+//			this->flags &= ~POSITIVE;
+//		}
+//#if USECACHE == TRUE
+//		flags = flags & ~CALCULATED;
+//		if (this->str != nullptr)
+//			delete str;
+//		this->str = nullptr;
+//#endif
+//		this->flags &= ~ERROR;
+//		return *this;
+//	}
 	BigInteger& mod(BigInteger& right)
 	{
 		BigInteger ZERO((INT)0);
+		BigInteger rTmp(right);
 		
 		if (right.lst.getSize() == 1 && right.lst.at(0) == 0) // when right is 0 -> dived by zero, add exception handling when need
 		{
@@ -793,7 +1107,7 @@ public:
 
 		if(isPositive(this->flags) && isPositive(right.flags)) // both are positive
 		{
-			while(1)
+			/*while(1)
 			{
 				if(*this >= right)
 				{
@@ -801,7 +1115,7 @@ public:
 					{
 						*this = BigInteger(this->lst.at(0) % right.lst.at(0));
 
-						return *this;
+						break;
 					}
 					
 					this->sub(right);
@@ -809,7 +1123,133 @@ public:
 				{
 					return *this;
 				}
+			}*/
+
+			node<INT>* ptr;
+			INT buffer, buffer2;
+
+			INT lBits, rBits, iTmp;
+			lBits = 8 * (this->lst.getSize() - 1) * sizeof(INT);
+			rBits = 8 * (rTmp.lst.getSize() - 1) * sizeof(INT);
+
+			iTmp = 8 * sizeof(INT) - 1;
+			while (!(this->lst.tail->getData() & (1 << iTmp))) iTmp--;
+			lBits += iTmp;
+
+			iTmp = 8 * sizeof(INT) - 1;
+			while (!(rTmp.lst.tail->getData() & (1 << iTmp))) iTmp--;
+			rBits += iTmp;
+
+			iTmp = (lBits - rBits) + 1;
+
+			while (*this >= rTmp)
+			{
+				if (rTmp.lst.tail->getData() & (1 << 8 * sizeof(INT) - 1))
+				{
+					rTmp.lst.append(0);
+				}
+				ptr = rTmp.lst.head;
+				buffer = buffer2 = 0;
+				while (ptr != nullptr)
+				{
+					buffer2 = buffer;
+					buffer = (ptr->getData() & (1 << 8 * sizeof(INT) - 1));
+					ptr->setData((ptr->getData() << 1) | (buffer2 ? 1 : 0));
+
+					ptr = ptr->getNext();
+				}
 			}
+
+			ptr = rTmp.lst.tail;
+			buffer = buffer2 = 0;
+
+			while (ptr != nullptr)
+			{
+				buffer2 = buffer;
+				buffer = (ptr->getData() & 0x1);
+				ptr->setData((ptr->getData() >> 1) | (buffer2 << 8 * sizeof(INT) - 1));
+
+				if (ptr->getPrev() != nullptr)
+					ptr = ptr->getPrev();
+				else break;
+
+			}
+
+			ptr = rTmp.lst.tail;
+			buffer = buffer2 = 0;
+
+			if (ptr->getData() == 0)
+			{
+				if (ptr->getPrev() != nullptr)
+					ptr->getPrev()->setNext(nullptr);
+				delete ptr;
+				rTmp.lst.size--;
+
+				node<INT>* tmpP = rTmp.lst.head;
+				while (tmpP->getNext() != nullptr)
+				{
+					tmpP = tmpP->getNext();
+				}
+				rTmp.lst.tail = tmpP;
+				ptr = tmpP;
+			}
+
+			BigInteger quotient((uint32_t)0);
+
+			while (iTmp-- != 0)
+			{
+				if (quotient.lst.tail->getData() & (1 << 8 * sizeof(INT) - 1))
+				{
+					quotient.lst.append(0);
+				}
+				ptr = quotient.lst.head;
+				buffer = buffer2 = 0;
+				while (ptr != nullptr)
+				{
+					buffer2 = buffer;
+					buffer = (ptr->getData() & (1 << 8 * sizeof(INT) - 1));
+					ptr->setData((ptr->getData() << 1) | (buffer2 ? 1 : 0));
+
+					ptr = ptr->getNext();
+				}
+
+				if (*this >= rTmp)
+				{
+					this->sub(rTmp);
+					quotient.lst.at(0) |= 1;
+				}
+
+				ptr = rTmp.lst.tail;
+				buffer = buffer2 = 0;
+
+				if (ptr->getData() == 0)
+				{
+					if (ptr->getPrev() != nullptr)
+						ptr->getPrev()->setNext(nullptr);
+					delete ptr;
+					rTmp.lst.size--;
+
+					node<INT>* tmpP = rTmp.lst.head;
+					while (tmpP->getNext() != nullptr)
+					{
+						tmpP = tmpP->getNext();
+					}
+					rTmp.lst.tail = tmpP;
+					ptr = tmpP;
+				}
+
+				while (ptr != nullptr)
+				{
+					buffer2 = buffer;
+					buffer = (ptr->getData() & 0x1);
+					ptr->setData((ptr->getData() >> 1) | (buffer2 << 8 * sizeof(INT) - 1));
+
+					if (ptr->getPrev() != nullptr)
+						ptr = ptr->getPrev();
+					else break;
+				}
+			}
+			
 		}else if(isNegative(right.flags)) // According to Mathematical law(Number's Theory), modulo should be positive
 		{
 			this->lst = list<INT>();

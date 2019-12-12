@@ -90,7 +90,7 @@ void BigIntegerTest2(string testfile) // sigma Wi * Xi from i = 1 to n
 int main()
 {
 	BigIntegerTest1(UINT32_MAX, UINT32_MAX - 10);
-	BigIntegerTest2("Test2.txt");
+	//BigIntegerTest2("Test2.txt");
 	
 	//BigInteger a(UINT32_MAX);
 	//BigInteger b(UINT32_MAX);
@@ -121,15 +121,17 @@ int main()
 	//cout << "Hexagon : " << obj1.get(HEXAGON) << endl;
 	//cout << "OCTAL   : " << obj1.get(OCTAL) << endl << endl;
 	//
-	//BigInteger obj3(5);
+	//BigInteger obj3(15);
 	//BigInteger obj4(3);
 	//cout << "Decimal of 5 : " <<  obj3.get() << endl;
 	//cout << "Decimal of 3 : " <<  obj4.get() << endl;
+	//cout << obj3.div(obj4).get(8) << endl;;
 	//obj3.sub(obj4);
 	//cout << "5 - 3" << endl;
 	//cout << "Decimal : " <<  obj3.get(DECIMAL) << endl;
 	//cout << "Hexagon : " << obj3.get(HEXAGON) << endl;
 	//cout << "OCTAL   : " << obj3.get(OCTAL) << endl << endl;
+	
 	//
 	//
 	//BigInteger obj5(7);
