@@ -96,6 +96,15 @@ void BigIntegerTest2(string testfile) // sigma Wi * Xi from i = 1 to n
 	return;
 }
 
+void TestFFAlgorithm(std::string path)
+{
+	BigIntNuralNet nn(path);
+	nn.InitNN();
+	nn.InitNNTest();
+	nn.FeedForward();
+	nn.ShowResult();
+}
+
 int main()
 {
 	//char str[] = "0x28000000000";
@@ -215,14 +224,7 @@ int main()
 	ptr[1][0] = 5;
 	
 	
-	BigIntNuralNet nn;
-	nn.TestFFAlgorithm("FFTestFile.txt");
-	//nn.InitNN(arr, ptr); // int **sizes; // size[0][0] -> input, size[0][1]->layers size[0][2] -> output, size[1][n] ->hidden's node
-	nn.InitNNTest();
-	//nn.FeedForwardTest();
-	nn.FeedForward();
-	nn.ShowResult();
-
+	TestFFAlgorithm(string("FFTestFile.txt"));
 	
 	return 0;
 }
