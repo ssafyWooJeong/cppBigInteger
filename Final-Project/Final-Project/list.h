@@ -25,6 +25,20 @@ public:
 
 	list<T>& operator=(const list<T>& right)
 	{
+		node<T>* ptr;
+		node<T>* ptr2;
+		if (this->head != nullptr)
+		{
+			ptr = this->head;
+
+			while (ptr != nullptr)
+			{
+				ptr2 = ptr->getNext();
+				delete ptr;
+				ptr = ptr2;
+			}
+		}
+		
 		if(right.size == 0)
 		{
 			this->size = 0;
@@ -39,8 +53,8 @@ public:
 		this->head = new node<T>();
 		this->tail = this->head;
 		this->head->setData(right.head->getData());
-		node<T>* ptr = right.head->getNext();
-		node<T>* ptr2 = this->head;
+		ptr = right.head->getNext();
+		ptr2 = this->head;
 
 		while (ptr != nullptr)
 		{

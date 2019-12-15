@@ -142,61 +142,6 @@ void BigIntNuralNet::InitNN()
 		file >> tmp;
 		this->inputs[i].set((uint32_t)tmp, POSITIVE | HEXAGON);
 	}
-	
-	//queue<BigInteger> tmpInput;
-	//queue<int> tmpWeight;
-
-	//file.ignore(1, '\n');
-	//getline(file, str);
-	//while (str.find(" ") != string::npos)
-	//{
-	//	string substr = str.substr(0, str.find(" "));
-	//	tmpWeight.push(atoi(substr.c_str()));
-	//	str = str.substr(str.find(" ") + 1);
-	//}
-	//tmpWeight.push(atoi(str.c_str()));
-
-	//getline(file, str);
-	//while (str.find(" ") != string::npos)
-	//{
-	//	string substr = str.substr(0, str.find(" "));
-	//	BigInteger obj(const_cast<char*>(substr.c_str()));
-	//	tmpInput.push(obj);
-	//	str = str.substr(str.find(" ") + 1);
-	//}
-	//tmpInput.push(BigInteger(const_cast<char*>(str.c_str())));
-
-	//this->inputs = new BigInteger[tmpInput.size()];
-	//this->sizes[0][0] = tmpInput.size();
-
-	//for (int i = 0; i < this->sizes[0][0]; i++)
-	//{
-	//	inputs[i] = tmpInput.front();
-	//	tmpInput.pop();
-	//}
-
-	//weight = new BigInteger * *[this->sizes[0][1] + 1];
-
-
-	//for (int i = 0; i <= this->sizes[0][1]; i++)
-	//{
-	//	//cout << "Weight between Layer " << i + 1 << " and Layer " << i + 2 << endl;
-	//	int tmp = (i == 0 ? sizes[0][0] : sizes[1][i - 1]);
-	//	weight[i] = new BigInteger * [tmp];
-	//	int tmp2 = tmpWeight.front();
-	//	tmpWeight.pop();
-
-	//	for (int j = 0; j < tmp; j++)
-	//	{
-	//		int tmp3 = (i == this->sizes[0][1] ? sizes[0][2] : sizes[1][i]);
-	//		weight[i][j] = new BigInteger[tmp3];
-	//		for (int k = 0; k < tmp3; k++)
-	//		{
-	//			weight[i][j][k].set(tmp2, HEXAGON | POSITIVE);
-	//			//printf("w%d,%d(%d) : %s\n", j, k, i + 1, weight[i][j][k].get(HEXAGON).get());
-	//		}
-	//	}
-	//}
 
 	this->outputs = new BigInteger[sizes[0][2]];
 
@@ -383,56 +328,4 @@ void BigIntNuralNet::InitNNTest()
 			printf("  ==> w : %s\n", weight[layer - 1][0][0].get(DECIMAL).get());
 		else printf("\n\n");
 	}
-	
-	//cout << "The number of node in Layer 1(Input Layer) : " << this->sizes[0][0] << endl;
-	//for(int i = 0; i < sizes[0][1]; i++)
-	//{
-	//	cout << "The number of node in Layer "<< i+2 <<"(Hidden Layer) : " << this->sizes[1][i] << endl;
-	//}
-
-	//cout << "The number of node in Layer "<< sizes[0][1] + 2 <<"(Output Layer) : " << this->sizes[0][2] << endl << endl;
-
-	//
-
-	//for (int layer = 0; layer <= sizes[0][1]; layer++)
-	//{
-	//	BigInteger* ptr;
-	//	BigInteger* ptr2;
-	//	int size[2];
-
-	//	if (layer == 0)
-	//	{
-	//		ptr = this->inputs;
-	//		ptr2 = this->hiddens[0];
-	//		size[0] = sizes[0][0];
-	//		size[1] = sizes[1][0];
-	//	}
-	//	else if (layer == sizes[0][1])
-	//	{
-	//		ptr = this->hiddens[sizes[0][1] - 1];
-	//		ptr2 = this->outputs;
-	//		size[0] = sizes[1][layer - 1];
-	//		size[1] = sizes[0][2];
-	//	}
-	//	else
-	//	{
-	//		ptr = this->hiddens[layer - 1];
-	//		ptr2 = this->hiddens[layer];
-	//		size[0] = sizes[1][layer - 1];
-	//		size[1] = sizes[1][layer];
-	//	}
-	//	cout << "Weight between Layer "<< layer+1 << " and Layer " << layer + 2 << endl;
-	//	for (int i = 0; i < size[0]; i++)
-	//	{
-	//		for (int j = 0; j < size[1]; j++)
-	//		{
-	//			//shared_ptr<char[]> ptr = weight[layer][i][j].get(HEXAGON);
-	//			//printf("w%d,%d(%d) : %s\n", i, j, layer + 1, ptr.get());
-
-	//			if(i == 0 && j == 0)
-	//			printf("w%d,%d(%d) : %s\n", i, j, layer + 1, weight[layer][i][j].get(HEXAGON).get());
-
-	//		}
-	//	}
-	//}
 }

@@ -23,12 +23,15 @@ list<T>::list(T data)
 template <typename T>
 list<T>::list(list<T>& old)
 {
+	node<T>* ptr;
+	node<T>* ptr2;
+
 	this->size = old.size;
 	this->head = new node<T>();
 	this->tail = this->head;
 	this->head->setData(old.head->getData());
-	node<T>* ptr = old.head->getNext();
-	node<T>* ptr2 = this->head;
+	ptr = old.head->getNext();
+	ptr2 = this->head;
 
 	while (ptr != nullptr)
 	{
