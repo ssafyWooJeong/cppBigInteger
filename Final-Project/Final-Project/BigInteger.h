@@ -78,6 +78,11 @@ private:
 #endif
 	
 public:
+	~BigInteger()
+	{
+		
+	}
+	
 	BigInteger& operator=(const BigInteger& right)
 	{
 		this->lst = right.lst;
